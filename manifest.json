@@ -1,21 +1,22 @@
 {
-  "name": "من سيربح المليون",
-  "short_name": "المليون",
-  "description": "لعبة أسئلة ثقافية عربية",
-  "start_url": "/MillionaireGame/",
-  "display": "standalone",
-  "background_color": "#1a237e",
-  "theme_color": "#FFD700",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "name": "millionaire-game",
+  "version": "2.0.0",
+  "description": "لعبة من سيربح المليون النسخة الاحترافية",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server .",
+    "build": "echo 'بناء اللعبة...'",
+    "deploy": "echo 'نشر اللعبة...'"
+  },
+  "keywords": [
+    "game",
+    "quiz",
+    "millionaire",
+    "arabic",
+    "education"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
 }
