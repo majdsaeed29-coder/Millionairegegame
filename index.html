@@ -117,6 +117,135 @@
                         </div>
                     </div>
 
+                    <!-- إعدادات المؤقت -->
+                    <div class="setup-card">
+                        <h3><i class="fas fa-clock"></i> إعدادات المؤقت</h3>
+                        <div class="timer-settings">
+                            <label class="timer-option active" data-timer="true">
+                                <input type="radio" name="timer" value="on" checked>
+                                <div class="timer-checkbox"></div>
+                                <div class="timer-info">
+                                    <i class="fas fa-stopwatch"></i>
+                                    <div>
+                                        <h4>مع مؤقت</h4>
+                                        <p>30 ثانية لكل سؤال - تحدي حقيقي!</p>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="timer-option" data-timer="false">
+                                <input type="radio" name="timer" value="off">
+                                <div class="timer-checkbox"></div>
+                                <div class="timer-info">
+                                    <i class="fas fa-infinity"></i>
+                                    <div>
+                                        <h4>بدون مؤقت</h4>
+                                        <p>خذ وقتك في التفكير والإجابة</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- اختيار أنواع الأسئلة (متعدد) -->
+                    <div class="setup-card">
+                        <h3><i class="fas fa-layer-group"></i> اختيار أنواع الأسئلة</h3>
+                        <p class="subtitle">يمكنك اختيار أكثر من نوع</p>
+                        
+                        <div class="question-types">
+                            <label class="type-option selected" data-type="ثقافة">
+                                <input type="checkbox" name="questionType" value="ثقافة" checked>
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">🎨</div>
+                                <div class="type-name">ثقافة</div>
+                                <div class="type-count" id="count-ثقافة">150 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option selected" data-type="رياضة">
+                                <input type="checkbox" name="questionType" value="رياضة" checked>
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">⚽</div>
+                                <div class="type-name">رياضة</div>
+                                <div class="type-count" id="count-رياضة">120 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option selected" data-type="تاريخ">
+                                <input type="checkbox" name="questionType" value="تاريخ" checked>
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">📜</div>
+                                <div class="type-name">تاريخ</div>
+                                <div class="type-count" id="count-تاريخ">130 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option selected" data-type="جغرافيا">
+                                <input type="checkbox" name="questionType" value="جغرافيا" checked>
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">🌍</div>
+                                <div class="type-name">جغرافيا</div>
+                                <div class="type-count" id="count-جغرافيا">110 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option selected" data-type="علوم">
+                                <input type="checkbox" name="questionType" value="علوم" checked>
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">🔬</div>
+                                <div class="type-name">علوم</div>
+                                <div class="type-count" id="count-علوم">100 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option" data-type="أطفال">
+                                <input type="checkbox" name="questionType" value="أطفال">
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">🧸</div>
+                                <div class="type-name">أطفال</div>
+                                <div class="type-count" id="count-أطفال">80 سؤال</div>
+                            </label>
+                            
+                            <label class="type-option" data-type="سياسة">
+                                <input type="checkbox" name="questionType" value="سياسة">
+                                <div class="type-checkbox"></div>
+                                <div class="type-icon">🏛️</div>
+                                <div class="type-name">سياسة</div>
+                                <div class="type-count" id="count-سياسة">90 سؤال</div>
+                            </label>
+                        </div>
+                        
+                        <div class="type-actions">
+                            <button class="btn small" id="select-all-types">اختيار الكل</button>
+                            <button class="btn small" id="deselect-all-types">إلغاء الكل</button>
+                        </div>
+                    </div>
+
+                    <!-- خلفية اللعبة -->
+                    <div class="setup-card">
+                        <h3><i class="fas fa-image"></i> خلفية اللعبة</h3>
+                        <div class="background-options" id="background-options">
+                            <div class="bg-option selected" data-bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" data-type="gradient">
+                                <div class="bg-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+                                <div class="bg-name">تدرج أزرق</div>
+                            </div>
+                            <div class="bg-option" data-bg="linear-gradient(135deg, #f6d365 0%, #fda085 100%)" data-type="gradient">
+                                <div class="bg-preview" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%)"></div>
+                                <div class="bg-name">تدرج ذهبي</div>
+                            </div>
+                            <div class="bg-option" data-bg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" data-type="gradient">
+                                <div class="bg-preview" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
+                                <div class="bg-name">تدرج أخضر</div>
+                            </div>
+                        </div>
+                        
+                        <div class="custom-bg-input">
+                            <input type="file" id="custom-bg-file" accept="image/*">
+                            <label for="custom-bg-file" class="custom-bg-label">
+                                <i class="fas fa-upload"></i> رفع صورة خاصة
+                            </label>
+                            <img id="bg-preview" alt="معاينة الصورة" style="display: none;">
+                            <button class="btn small" id="random-bg-btn">
+                                <i class="fas fa-random"></i> خلفية عشوائية
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- خيارات إضافية -->
                     <div class="setup-card">
                         <h3><i class="fas fa-gamepad"></i> إعدادات اللعب</h3>
