@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>من سريع المليون</title>
+    <title>من سريع المليون - العبة العربية للفوز بالمليون</title>
     
     <!-- الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,19 +15,20 @@
     
     <!-- التنسيقات -->
     <style>
-        /* تنسيقات الطوارئ إذا الـCSS مش شغال */
+        /* تنسيقات أساسية مؤقتة إلى أن يتم تحميل style.css */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
         }
         
         body {
-            font-family: 'Cairo', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #2d3436;
             min-height: 100vh;
             direction: rtl;
+            overflow-x: hidden;
             padding: 20px;
         }
         
@@ -37,14 +38,47 @@
             min-height: 90vh;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             overflow: hidden;
+            position: relative;
         }
         
-        .debug-info {
-            background: #ff4757;
+        /* شاشة التحميل */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 6px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #FFD700;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-screen p {
             color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        
+        /* تنسيقات طوارئ */
+        .emergency-styles {
+            display: block !important;
         }
     </style>
     
@@ -53,17 +87,13 @@
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
 </head>
 <body>
-    <!-- معلومات التصحيح -->
-    <div class="debug-info" id="debug-info">
-        ⚡ جاري تحميل اللعبة...
-    </div>
-    
     <!-- شاشة التحميل -->
     <div id="loading-screen" class="loading-screen">
         <div class="loader"></div>
-        <p style="color: white; margin-top: 20px;">جاري تحميل اللعبة...</p>
+        <p>جاري تحميل اللعبة...</p>
     </div>
     
     <!-- التطبيق الرئيسي -->
@@ -77,245 +107,729 @@
                 </div>
                 
                 <div class="header-controls">
-                    <button id="sound-toggle" class="control-btn">
+                    <button id="sound-toggle" class="control-btn" title="تشغيل/إيقاف الصوت">
                         <i class="fas fa-volume-up"></i>
                     </button>
                     
-                    <button id="stats-btn" class="control-btn">
+                    <button id="stats-btn" class="control-btn" title="الإحصائيات">
                         <i class="fas fa-chart-bar"></i>
                     </button>
                     
-                    <div id="premium-badge" class="premium-badge" style="display: none;">
+                    <button id="subscribe-btn" class="control-btn" title="الاشتراك المميز">
                         <i class="fas fa-crown"></i>
-                        <span>مميز</span>
-                    </div>
+                    </button>
                 </div>
             </div>
         </header>
         
         <!-- المحتوى الرئيسي -->
         <main id="main-content">
-            <!-- شاشة ترحيب بسيطة -->
-            <div id="welcome-screen" style="padding: 40px; text-align: center;">
-                <h2 style="color: #0984e3; margin-bottom: 20px;">🎮 من سريع المليون</h2>
-                <p style="color: #636e72; margin-bottom: 30px;">لعبة المسابقة العربية للفوز بمليون دينار</p>
+            <!-- سيتم تحميل الشاشات هنا ديناميكياً -->
+            <div id="welcome-screen" style="padding: 40px; text-align: center; display: block;">
+                <h2 style="color: #0984e3; margin-bottom: 20px; font-size: 2rem;">🎮 من سريع المليون</h2>
+                <p style="color: #636e72; margin-bottom: 30px; font-size: 1.2rem;">لعبة المسابقة العربية للفوز بمليون دينار</p>
                 
-                <button id="start-game-test" style="
-                    background: linear-gradient(135deg, #0984e3, #4a69bd);
-                    color: white;
-                    border: none;
-                    padding: 15px 30px;
-                    border-radius: 10px;
-                    font-size: 18px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    margin: 10px;
-                ">
-                    <i class="fas fa-play"></i> ابدأ اللعبة
-                </button>
+                <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
+                    <button id="start-quick-game" class="game-btn" style="
+                        background: linear-gradient(135deg, #0984e3, #4a69bd);
+                        color: white;
+                        border: none;
+                        padding: 15px 25px;
+                        border-radius: 15px;
+                        font-size: 18px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    ">
+                        <i class="fas fa-bolt"></i> بدء سريع
+                    </button>
+                    
+                    <button id="custom-game" class="game-btn" style="
+                        background: #f1f2f6;
+                        color: #2d3436;
+                        border: none;
+                        padding: 15px 25px;
+                        border-radius: 15px;
+                        font-size: 18px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    ">
+                        <i class="fas fa-cog"></i> لعب مخصص
+                    </button>
+                </div>
                 
-                <div style="margin-top: 40px; color: #888; font-size: 14px;">
-                    <p>إذا شايف هالشاشة، الـHTML وCSS شغالين</p>
-                    <p>افتح F12 → Console وشوف إذا في أخطاء</p>
+                <div style="margin-top: 40px; background: #f8f9fa; padding: 20px; border-radius: 15px;">
+                    <h3 style="color: #2d3436; margin-bottom: 15px;">🏆 أفضل النتائج</h3>
+                    <div id="top-scores" style="text-align: right;">
+                        <!-- سيتم تحميل النتائج هنا -->
+                    </div>
                 </div>
             </div>
         </main>
         
         <!-- التنقل -->
-        <nav class="game-nav">
-            <button id="home-btn" class="nav-btn active">
+        <nav class="game-nav" style="
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 15px 10px;
+            border-top: 2px solid #f1f2f6;
+            position: sticky;
+            bottom: 0;
+        ">
+            <button class="nav-btn active" data-screen="home">
                 <i class="fas fa-home"></i>
                 <span>الرئيسية</span>
             </button>
             
-            <button id="play-btn" class="nav-btn">
+            <button class="nav-btn" data-screen="play">
                 <i class="fas fa-play-circle"></i>
                 <span>العب</span>
             </button>
             
-            <button id="leaderboard-btn" class="nav-btn">
+            <button class="nav-btn" data-screen="leaderboard">
                 <i class="fas fa-trophy"></i>
                 <span>المتصدرين</span>
             </button>
             
-            <button id="more-btn" class="nav-btn">
+            <button class="nav-btn" data-screen="more">
                 <i class="fas fa-ellipsis-h"></i>
                 <span>المزيد</span>
             </button>
         </nav>
     </div>
     
-    <!-- الحاويات -->
-    <div id="notification-container" class="notification-container"></div>
-    <div id="modals-container" class="modals-container"></div>
+    <!-- حاوية الإشعارات -->
+    <div id="notification-container" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 300px;
+    "></div>
+    
+    <!-- حاوية النوافذ المنبثقة -->
+    <div id="modals-container"></div>
     
     <!-- الأصوات -->
-    <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
-    <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
-    <audio id="sound-click" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
-    <audio id="sound-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+    <audio id="sound-correct" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-wrong" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-click" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sound-win" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
+    </audio>
     
-    <!-- سكريبتات التصحيح -->
-    <script>
-        // دالة تصحيح
-        function debugLog(message, type = 'info') {
-            const colors = {
-                info: '#0984e3',
-                success: '#00b894',
-                error: '#e17055',
-                warning: '#fdcb6e'
-            };
-            
-            console.log(`%c${message}`, `color: ${colors[type]}; font-weight: bold;`);
-            document.getElementById('debug-info').innerHTML = `⚡ ${message}`;
-            document.getElementById('debug-info').style.background = colors[type];
-        }
-        
-        // تحقق من تحميل الملفات
-        function checkFileLoaded(filename) {
-            return new Promise((resolve) => {
-                const startTime = Date.now();
-                const checkInterval = setInterval(() => {
-                    if (Date.now() - startTime > 5000) {
-                        clearInterval(checkInterval);
-                        resolve(false);
-                    }
-                    
-                    try {
-                        if (filename === 'style.css') {
-                            const styles = document.styleSheets;
-                            for (let i = 0; i < styles.length; i++) {
-                                if (styles[i].href && styles[i].href.includes(filename)) {
-                                    clearInterval(checkInterval);
-                                    resolve(true);
-                                }
-                            }
-                        } else if (window[filename.replace('.js', '')]) {
-                            clearInterval(checkInterval);
-                            resolve(true);
-                        }
-                    } catch (e) {
-                        // continue
-                    }
-                }, 100);
-            });
-        }
-        
-        // بدء التصحيح
-        async function startDebug() {
-            debugLog('بدء تصحيح اللعبة...', 'info');
-            
-            // تحقق من CSS
-            const cssLoaded = await checkFileLoaded('style.css');
-            if (cssLoaded) {
-                debugLog('✅ ملف التنسيقات محمل', 'success');
-            } else {
-                debugLog('❌ ملف التنسيقات غير محمل', 'error');
-                // تحميل CSS احتياطي
-                const backupCSS = `
-                    <style>
-                        /* تنسيقات احتياطية */
-                        .game-header { background: #2d3436; color: white; padding: 15px; }
-                        .game-nav { background: #f8f9fa; display: flex; padding: 10px; }
-                        .nav-btn { flex: 1; text-align: center; padding: 10px; }
-                    </style>
-                `;
-                document.head.insertAdjacentHTML('beforeend', backupCSS);
-            }
-            
-            // تحميل السكريبتات تدريجياً
-            const scripts = [
-                'config.js',
-                'security.js', 
-                'question-bank.js',
-                'subscription.js',
-                'script.js'
-            ];
-            
-            for (let i = 0; i < scripts.length; i++) {
-                try {
-                    const script = document.createElement('script');
-                    script.src = scripts[i];
-                    script.onload = () => debugLog(`✅ ${scripts[i]} محمل`, 'success');
-                    script.onerror = () => debugLog(`❌ ${scripts[i]} فشل التحميل`, 'error');
-                    document.head.appendChild(script);
-                    
-                    // انتظر قليلاً بين كل سكريبت
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                } catch (error) {
-                    debugLog(`خطأ في ${scripts[i]}: ${error.message}`, 'error');
-                }
-            }
-            
-            // بدء اللعبة بعد تحميل كل شيء
-            setTimeout(() => {
-                if (window.MillionaireGame) {
-                    try {
-                        window.game = new MillionaireGame();
-                        debugLog('🎮 اللعبة بدأت بنجاح!', 'success');
-                        
-                        // إخفاء شاشة التحميل
-                        document.getElementById('loading-screen').style.display = 'none';
-                        document.getElementById('debug-info').style.display = 'none';
-                        
-                    } catch (error) {
-                        debugLog(`خطأ في بدء اللعبة: ${error.message}`, 'error');
-                        showErrorScreen(error);
-                    }
-                } else {
-                    debugLog('❌ محرك اللعبة غير محمل', 'error');
-                    showErrorScreen(new Error('محرك اللعبة غير محمل'));
-                }
-            }, 3000);
-        }
-        
-        // عرض شاشة الخطأ
-        function showErrorScreen(error) {
-            document.getElementById('main-content').innerHTML = `
-                <div style="padding: 40px; text-align: center;">
-                    <h2 style="color: #e17055;">❌ حدث خطأ</h2>
-                    <p style="color: #636e72; margin: 20px 0;">${error.message}</p>
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: right;">
-                        <h4>خطوات الحل:</h4>
-                        <ol style="margin: 10px 0; padding-right: 20px;">
-                            <li>افتح F12 → Console</li>
-                            <li>شوف الأخطاء يلي بتحكي عنها</li>
-                            <li>تأكد إنو كل الملفات موجودة</li>
-                            <li>جرب تفتح الصفحة على متصفح تاني</li>
-                        </ol>
-                    </div>
-                    <button onclick="location.reload()" style="
-                        background: #0984e3;
-                        color: white;
-                        border: none;
-                        padding: 10px 20px;
-                        border-radius: 5px;
-                        margin-top: 20px;
-                        cursor: pointer;
-                    ">
-                        <i class="fas fa-redo"></i> إعادة تحميل
-                    </button>
-                </div>
-            `;
-        }
-        
-        // بدء عند تحميل الصفحة
-        window.addEventListener('DOMContentLoaded', () => {
-            debugLog('الصفحة محملة، بدء التصحيح...', 'info');
-            startDebug();
-        });
-        
-        // زر الاختبار
-        document.getElementById('start-game-test')?.addEventListener('click', () => {
-            alert('JavaScript شغال! إذا اللعبة ما اشتغلت، شوف Console');
-        });
-    </script>
-    
-    <!-- تحميل الملفات الأساسية -->
+    <!-- سكريبتات اللعبة -->
     <script src="config.js"></script>
     <script src="security.js"></script>
     <script src="question-bank.js"></script>
     <script src="subscription.js"></script>
-    <script src="script.js"></script>
+    
+    <!-- المحرك الرئيسي -->
+    <script>
+        // تعريف الكائنات الأساسية
+        window.GameConfig = window.GameConfig || {};
+        window.QuestionBank = window.QuestionBank || class {};
+        window.SecurityManager = window.SecurityManager || class {};
+        window.SubscriptionManager = window.SubscriptionManager || class {};
+        
+        // إعدادات أساسية
+        const gameState = {
+            screen: 'home',
+            player: {
+                name: 'المتنافس',
+                avatar: '👤',
+                score: 0,
+                level: 1,
+                xp: 0
+            },
+            settings: {
+                sound: true,
+                timer: true
+            }
+        };
+        
+        // دالة إظهار إشعار
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <div style="
+                    background: ${type === 'success' ? '#00b894' : type === 'error' ? '#e17055' : '#0984e3'};
+                    color: white;
+                    padding: 15px;
+                    border-radius: 10px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                ">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // إزالة بعد 5 ثوانٍ
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+        
+        // دالة تغيير الشاشة
+        function changeScreen(screenName) {
+            gameState.screen = screenName;
+            
+            // تحديث أزرار التنقل
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.screen === screenName) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // تحديث المحتوى
+            updateMainContent();
+        }
+        
+        // دالة تحديث المحتوى الرئيسي
+        function updateMainContent() {
+            const container = document.getElementById('main-content');
+            if (!container) return;
+            
+            switch(gameState.screen) {
+                case 'home':
+                    container.innerHTML = `
+                        <div style="padding: 30px;">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <h2 style="color: #0984e3; margin-bottom: 10px;">🎮 من سريع المليون</h2>
+                                <p style="color: #636e72;">لعبة المسابقة العربية للفوز بمليون دينار</p>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
+                                    <div style="font-size: 2rem; color: #0984e3; margin-bottom: 10px;">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <div style="font-size: 1.5rem; font-weight: bold;">0</div>
+                                    <div style="color: #636e72; font-size: 0.9rem;">أفضل نتيجة</div>
+                                </div>
+                                
+                                <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; text-align: center;">
+                                    <div style="font-size: 2rem; color: #00b894; margin-bottom: 10px;">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div style="font-size: 1.5rem; font-weight: bold;">1</div>
+                                    <div style="color: #636e72; font-size: 0.9rem;">المستوى</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <button id="start-quick-game" class="game-btn" style="
+                                    background: linear-gradient(135deg, #0984e3, #4a69bd);
+                                    color: white;
+                                    border: none;
+                                    padding: 18px;
+                                    border-radius: 15px;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 10px;
+                                ">
+                                    <i class="fas fa-bolt"></i> بدء سريع
+                                </button>
+                                
+                                <button id="custom-game" class="game-btn" style="
+                                    background: #f1f2f6;
+                                    color: #2d3436;
+                                    border: none;
+                                    padding: 18px;
+                                    border-radius: 15px;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 10px;
+                                ">
+                                    <i class="fas fa-cog"></i> لعب مخصص
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'play':
+                    container.innerHTML = `
+                        <div style="padding: 30px;">
+                            <h2 style="color: #2d3436; margin-bottom: 20px; text-align: center;">⚙️ إعدادات اللعبة</h2>
+                            
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                                <h3 style="color: #2d3436; margin-bottom: 15px;">
+                                    <i class="fas fa-user"></i> الملف الشخصي
+                                </h3>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <input type="text" id="player-name" 
+                                           value="${gameState.player.name}" 
+                                           placeholder="اسم اللاعب"
+                                           style="
+                                                padding: 15px;
+                                                border: 2px solid #dfe6e9;
+                                                border-radius: 10px;
+                                                font-size: 16px;
+                                           ">
+                                    
+                                    <select id="player-avatar" style="
+                                        padding: 15px;
+                                        border: 2px solid #dfe6e9;
+                                        border-radius: 10px;
+                                        font-size: 16px;
+                                        background: white;
+                                    ">
+                                        <option value="👤">👤 لاعب</option>
+                                        <option value="👨‍💼">👨‍💼 رجل أعمال</option>
+                                        <option value="👩‍💼">👩‍💼 سيدة أعمال</option>
+                                        <option value="👨‍🎓">👨‍🎓 طالب</option>
+                                        <option value="👩‍🎓">👩‍🎓 طالبة</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+                                <h3 style="color: #2d3436; margin-bottom: 15px;">
+                                    <i class="fas fa-sliders-h"></i> مستوى الصعوبة
+                                </h3>
+                                
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 10px;">
+                                        <input type="radio" name="difficulty" value="easy" checked>
+                                        <span>😊 سهل (45 ثانية، 3 أدوات)</span>
+                                    </label>
+                                    
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 10px;">
+                                        <input type="radio" name="difficulty" value="medium">
+                                        <span>😐 متوسط (30 ثانية، 2 أدوات)</span>
+                                    </label>
+                                    
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 10px;">
+                                        <input type="radio" name="difficulty" value="hard">
+                                        <span>😓 صعب (20 ثانية، 1 أداة)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <button id="start-game" style="
+                                background: linear-gradient(135deg, #00b894, #00cec9);
+                                color: white;
+                                border: none;
+                                padding: 18px;
+                                border-radius: 15px;
+                                font-size: 18px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                            ">
+                                <i class="fas fa-play-circle"></i> بدء اللعبة
+                            </button>
+                        </div>
+                    `;
+                    break;
+                    
+                default:
+                    container.innerHTML = `<div style="padding: 40px; text-align: center;"><h2>تحت التطوير</h2></div>`;
+            }
+            
+            // إضافة الأحداث
+            addEventListeners();
+        }
+        
+        // دالة إضافة مستمعي الأحداث
+        function addEventListeners() {
+            // أزرار التنقل
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeScreen(btn.dataset.screen);
+                });
+            });
+            
+            // بدء لعبة سريعة
+            const quickGameBtn = document.getElementById('start-quick-game');
+            if (quickGameBtn) {
+                quickGameBtn.addEventListener('click', () => {
+                    startQuickGame();
+                });
+            }
+            
+            // لعبة مخصصة
+            const customGameBtn = document.getElementById('custom-game');
+            if (customGameBtn) {
+                customGameBtn.addEventListener('click', () => {
+                    changeScreen('play');
+                });
+            }
+            
+            // بدء اللعبة
+            const startGameBtn = document.getElementById('start-game');
+            if (startGameBtn) {
+                startGameBtn.addEventListener('click', () => {
+                    startGame();
+                });
+            }
+            
+            // اسم اللاعب
+            const playerNameInput = document.getElementById('player-name');
+            if (playerNameInput) {
+                playerNameInput.addEventListener('input', (e) => {
+                    gameState.player.name = e.target.value;
+                });
+            }
+            
+            // الصورة الرمزية
+            const playerAvatarSelect = document.getElementById('player-avatar');
+            if (playerAvatarSelect) {
+                playerAvatarSelect.value = gameState.player.avatar;
+                playerAvatarSelect.addEventListener('change', (e) => {
+                    gameState.player.avatar = e.target.value;
+                });
+            }
+            
+            // تبديل الصوت
+            const soundToggle = document.getElementById('sound-toggle');
+            if (soundToggle) {
+                soundToggle.addEventListener('click', () => {
+                    gameState.settings.sound = !gameState.settings.sound;
+                    const icon = soundToggle.querySelector('i');
+                    if (icon) {
+                        icon.className = gameState.settings.sound ? 
+                            'fas fa-volume-up' : 'fas fa-volume-mute';
+                    }
+                    showNotification(gameState.settings.sound ? 'تم تشغيل الصوت' : 'تم إيقاف الصوت');
+                });
+            }
+            
+            // الإحصائيات
+            const statsBtn = document.getElementById('stats-btn');
+            if (statsBtn) {
+                statsBtn.addEventListener('click', () => {
+                    showStatistics();
+                });
+            }
+            
+            // الاشتراك
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            if (subscribeBtn) {
+                subscribeBtn.addEventListener('click', () => {
+                    showSubscriptionModal();
+                });
+            }
+        }
+        
+        // دالة بدء لعبة سريعة
+        function startQuickGame() {
+            showNotification('جاري تحضير لعبة سريعة...', 'info');
+            
+            // محاكاة تحميل
+            setTimeout(() => {
+                showNotification('بدأت اللعبة! حظاً موفقاً', 'success');
+                // هنا سيتم تحميل شاشة اللعبة
+            }, 1000);
+        }
+        
+        // دالة بدء اللعبة
+        function startGame() {
+            // جمع البيانات
+            const difficulty = document.querySelector('input[name="difficulty"]:checked')?.value || 'easy';
+            
+            showNotification(`بدأت اللعبة (${difficulty})!`, 'success');
+            
+            // هنا سيتم تحميل شاشة اللعبة الفعلية
+        }
+        
+        // دالة إظهار الإحصائيات
+        function showStatistics() {
+            const modalHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    padding: 20px;
+                ">
+                    <div style="
+                        background: white;
+                        border-radius: 20px;
+                        padding: 30px;
+                        max-width: 400px;
+                        width: 100%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                    ">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="color: #2d3436;">📊 الإحصائيات</h3>
+                            <button id="close-stats" style="
+                                background: none;
+                                border: none;
+                                font-size: 24px;
+                                cursor: pointer;
+                                color: #636e72;
+                            ">&times;</button>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 2rem; color: #0984e3;">0</div>
+                                <div style="color: #636e72; font-size: 0.9rem;">الألعاب</div>
+                            </div>
+                            
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;">
+                                <div style="font-size: 2rem; color: #00b894;">0</div>
+                                <div style="color: #636e72; font-size: 0.9rem;">إجمالي النقاط</div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="this.parentElement.parentElement.remove()" style="
+                            background: #0984e3;
+                            color: white;
+                            border: none;
+                            padding: 15px;
+                            border-radius: 10px;
+                            width: 100%;
+                            font-size: 16px;
+                            cursor: pointer;
+                        ">
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const container = document.getElementById('modals-container');
+            container.innerHTML = modalHTML;
+        }
+        
+        // دالة إظهار نافذة الاشتراك
+        function showSubscriptionModal() {
+            const modalHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    padding: 20px;
+                ">
+                    <div style="
+                        background: white;
+                        border-radius: 20px;
+                        padding: 30px;
+                        max-width: 400px;
+                        width: 100%;
+                    ">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 3rem; color: #FFD700; margin-bottom: 10px;">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <h3 style="color: #2d3436;">النسخة المميزة</h3>
+                            <p style="color: #636e72;">استمتع بتجربة خالية من الإعلانات</p>
+                        </div>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(255,215,0,0.1), white); 
+                                     border: 3px solid #FFD700;
+                                     border-radius: 15px;
+                                     padding: 20px;
+                                     margin-bottom: 20px;
+                                     position: relative;">
+                            <div style="position: absolute; top: -12px; right: 20px; background: #FFD700; color: #2d3436; padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+                                الأكثر شهرة
+                            </div>
+                            
+                            <h4 style="color: #2d3436; margin-bottom: 15px;">الاشتراك الشهري</h4>
+                            
+                            <div style="display: flex; align-items: baseline; justify-content: center; gap: 5px; margin-bottom: 20px;">
+                                <span style="font-size: 2.5rem; font-weight: bold;">9.99</span>
+                                <span style="font-size: 1.2rem; color: #0984e3;">$</span>
+                                <span style="color: #636e72;">/شهر</span>
+                            </div>
+                            
+                            <ul style="list-style: none; padding: 0; margin: 0 0 20px 0; text-align: right;">
+                                <li style="padding: 8px 0; border-bottom: 1px solid #f1f2f6; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check" style="color: #00b894;"></i>
+                                    <span>إزالة جميع الإعلانات</span>
+                                </li>
+                                <li style="padding: 8px 0; border-bottom: 1px solid #f1f2f6; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check" style="color: #00b894;"></i>
+                                    <span>أدوات مساعدة إضافية</span>
+                                </li>
+                                <li style="padding: 8px 0; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-check" style="color: #00b894;"></i>
+                                    <span>أسئلة حصرية</span>
+                                </li>
+                            </ul>
+                            
+                            <button onclick="this.closest('div[style*=\\'position: fixed\\']').remove(); showNotification('تم تفعيل الاشتراك التجريبي', 'success')" style="
+                                background: linear-gradient(135deg, #FFD700, #FF9500);
+                                color: #2d3436;
+                                border: none;
+                                padding: 15px;
+                                border-radius: 12px;
+                                font-size: 16px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                width: 100%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                gap: 10px;
+                            ">
+                                <i class="fas fa-gem"></i>
+                                اشترك الآن
+                            </button>
+                        </div>
+                        
+                        <button onclick="this.parentElement.parentElement.remove()" style="
+                            background: #dfe6e9;
+                            color: #2d3436;
+                            border: none;
+                            padding: 15px;
+                            border-radius: 10px;
+                            width: 100%;
+                            font-size: 16px;
+                            cursor: pointer;
+                        ">
+                            <i class="fas fa-times"></i> إغلاق
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const container = document.getElementById('modals-container');
+            container.innerHTML = modalHTML;
+        }
+        
+        // تهيئة اللعبة عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🎮 تهيئة لعبة من سريع المليون...');
+            
+            // إخفاء شاشة التحميل بعد 2 ثانية
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }
+                
+                // إضافة مستمعي الأحداث
+                addEventListeners();
+                
+                // تحميل أفضل النتائج
+                loadTopScores();
+                
+                // عرض رسالة ترحيب
+                showNotification('مرحباً في من سريع المليون!', 'success');
+                
+            }, 2000);
+        });
+        
+        // دالة تحميل أفضل النتائج
+        function loadTopScores() {
+            const container = document.getElementById('top-scores');
+            if (!container) return;
+            
+            // بيانات تجريبية
+            const scores = [
+                { name: 'أحمد', score: 500000, avatar: '👨‍💼' },
+                { name: 'سارة', score: 320000, avatar: '👩‍💼' },
+                { name: 'محمد', score: 160000, avatar: '👨‍🎓' }
+            ];
+            
+            let html = '';
+            scores.forEach((player, index) => {
+                html += `
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 10px;
+                        border-bottom: 1px solid #dfe6e9;
+                        background: ${index < 3 ? 'rgba(255,215,0,0.1)' : 'white'};
+                    ">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">${player.avatar}</span>
+                            <span style="font-weight: bold;">${player.name}</span>
+                        </div>
+                        <div style="color: #0984e3; font-weight: bold;">
+                            ${player.score.toLocaleString()} دينار
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // اختبار وجود الملفات
+        console.log('✅ الصفحة جاهزة للتشغيل');
+        console.log('📁 الملفات المطلوبة:');
+        console.log('- config.js:', typeof GameConfig !== 'undefined' ? '✅ محمل' : '❌ غير محمل');
+        console.log('- question-bank.js:', typeof QuestionBank !== 'undefined' ? '✅ محمل' : '❌ غير محمل');
+        console.log('- security.js:', typeof SecurityManager !== 'undefined' ? '✅ محمل' : '❌ غير محمل');
+        console.log('- subscription.js:', typeof SubscriptionManager !== 'undefined' ? '✅ محمل' : '❌ غير محمل');
+    </script>
+    
+    <!-- ملف JavaScript الرئيسي (سيتم تحميله بعد كل شيء) -->
+    <script>
+        // تأخير تحميل script.js لضمان تحميل باقي الملفات أولاً
+        setTimeout(() => {
+            const script = document.createElement('script');
+            script.src = 'script.js';
+            script.onload = () => console.log('✅ script.js محمل بنجاح');
+            script.onerror = () => console.log('❌ فشل تحميل script.js');
+            document.head.appendChild(script);
+        }, 1000);
+    </script>
 </body>
 </html>
