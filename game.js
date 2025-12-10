@@ -2,7 +2,7 @@
 class MillionaireGame {
     constructor() {
         this.config = {
-            version: '2.0.0',
+            version: '2.1.0',
             maxQuestions: 15,
             prizes: [
                 100, 200, 300, 500, 1000,         // المستوى 1
@@ -60,8 +60,11 @@ class MillionaireGame {
                 sound: true,
                 vibration: true,
                 animations: true,
-                autoNext: true
-            }
+                autoNext: true,
+                timerEnabled: true
+            },
+            selectedTypes: ['ثقافة', 'رياضة', 'تاريخ', 'جغرافيا', 'علوم'],
+            backgroundImage: null
         };
 
         this.elements = {};
@@ -75,6 +78,10 @@ class MillionaireGame {
         this.loadSettings();
         this.updateCategories();
         this.updatePlayerInfo();
+        this.initTimerSettings();
+        this.initQuestionTypes();
+        this.initBackgroundSettings();
+        this.updateQuestionCounts();
         this.showNotification('🚀 نظام اللعبة جاهز!', 'success');
     }
 
@@ -110,6 +117,20 @@ class MillionaireGame {
 
         // مستويات الصعوبة
         this.elements.difficultyOptions = document.querySelectorAll('.difficulty-option');
+
+        // إعدادات المؤقت
+        this.elements.timerOptions = document.querySelectorAll('.timer-option');
+
+        // أنواع الأسئلة
+        this.elements.typeOptions = document.querySelectorAll('.type-option');
+        this.elements.selectAllTypes = document.getElementById('select-all-types');
+        this.elements.deselectAllTypes = document.getElementById('deselect-all-types');
+
+        // الخلفيات
+        this.elements.bgOptions = document.querySelectorAll('.bg-option');
+        this.elements.customBgFile = document.getElementById('custom-bg-file');
+        this.elements.bgPreview = document.getElementById('bg-preview');
+        this.elements.randomBgBtn = document.getElementById('random-bg-btn');
 
         // الإعدادات
         this.elements.settings = {
@@ -261,24 +282,260 @@ class MillionaireGame {
         });
     }
 
+    // تهيئة إعدادات المؤقت
+    initTimerSettings() {
+        this.elements.timerOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                // إزالة التحديد من الجميع
+                this.elements.timerOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // تحديد الخيار الحالي
+                option.classList.add('active');
+                
+                // تحديث الإعدادات
+                const timerEnabled = option.dataset.timer === 'true';
+                this.state.settings.timerEnabled = timerEnabled;
+                this.saveSettings();
+                
+                if (this.state.settings.sound) {
+                    this.playSound('click');
+                }
+            });
+        });
+    }
+
+    // تهيئة أنواع الأسئلة
+    initQuestionTypes() {
+        // حدث النقر على نوع السؤال
+        this.elements.typeOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const type = option.dataset.type;
+                
+                if (option.classList.contains('selected')) {
+                    option.classList.remove('selected');
+                    this.removeQuestionType(type);
+                } else {
+                    option.classList.add('selected');
+                    this.addQuestionType(type);
+                }
+                
+                if (this.state.settings.sound) {
+                    this.playSound('click');
+                }
+            });
+        });
+        
+        // زر اختيار الكل
+        this.elements.selectAllTypes.addEventListener('click', () => {
+            this.elements.typeOptions.forEach(option => {
+                option.classList.add('selected');
+                this.addQuestionType(option.dataset.type);
+            });
+            
+            if (this.state.settings.sound) {
+                this.playSound('click');
+            }
+        });
+        
+        // زر إلغاء الكل
+        this.elements.deselectAllTypes.addEventListener('click', () => {
+            this.elements.typeOptions.forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            this.state.selectedTypes = [];
+            
+            if (this.state.settings.sound) {
+                this.playSound('click');
+            }
+        });
+    }
+
+    // إضافة نوع سؤال
+    addQuestionType(type) {
+        if (!this.state.selectedTypes.includes(type)) {
+            this.state.selectedTypes.push(type);
+        }
+    }
+
+    // إزالة نوع سؤال
+    removeQuestionType(type) {
+        const index = this.state.selectedTypes.indexOf(type);
+        if (index > -1) {
+            this.state.selectedTypes.splice(index, 1);
+        }
+    }
+
+    // تهيئة إعدادات الخلفية
+    initBackgroundSettings() {
+        // خلفيات جاهزة
+        const backgrounds = [
+            { 
+                id: 'default', 
+                name: 'تدرج أزرق', 
+                url: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                type: 'gradient'
+            },
+            { 
+                id: 'gradient2', 
+                name: 'تدرج ذهبي', 
+                url: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+                type: 'gradient'
+            },
+            { 
+                id: 'gradient3', 
+                name: 'تدرج أخضر', 
+                url: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                type: 'gradient'
+            }
+        ];
+        
+        // أحداث الخلفيات
+        this.elements.bgOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                this.elements.bgOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                
+                const bgUrl = option.dataset.bg;
+                const bgType = option.dataset.type;
+                
+                this.setBackground(bgUrl, bgType);
+                
+                if (this.state.settings.sound) {
+                    this.playSound('click');
+                }
+            });
+        });
+        
+        // حدث رفع صورة مخصصة
+        this.elements.customBgFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    this.setBackground(event.target.result, 'image');
+                    
+                    // إظهار المعاينة
+                    this.elements.bgPreview.src = event.target.result;
+                    this.elements.bgPreview.style.display = 'block';
+                    
+                    // إزالة التحديد من الخلفيات الأخرى
+                    this.elements.bgOptions.forEach(opt => opt.classList.remove('selected'));
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // زر الخلفية العشوائية
+        this.elements.randomBgBtn.addEventListener('click', () => {
+            const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+            this.setBackground(randomBg.url, randomBg.type);
+            
+            // تحديث التحديد
+            this.elements.bgOptions.forEach(opt => opt.classList.remove('selected'));
+            const selectedOption = Array.from(this.elements.bgOptions).find(
+                opt => opt.dataset.bg === randomBg.url
+            );
+            if (selectedOption) {
+                selectedOption.classList.add('selected');
+            }
+            
+            if (this.state.settings.sound) {
+                this.playSound('click');
+            }
+        });
+    }
+
+    // تعيين الخلفية
+    setBackground(url, type) {
+        const body = document.body;
+        
+        if (type === 'gradient') {
+            body.style.background = url;
+            body.style.backgroundAttachment = 'fixed';
+            body.style.backgroundSize = 'cover';
+        } else {
+            body.style.background = `url('${url}')`;
+            body.style.backgroundSize = 'cover';
+            body.style.backgroundPosition = 'center';
+            body.style.backgroundAttachment = 'fixed';
+            body.style.backgroundRepeat = 'no-repeat';
+        }
+        
+        // حفظ الإعدادات
+        this.state.settings.background = { url, type };
+        this.saveSettings();
+    }
+
     // تحميل الإعدادات
     loadSettings() {
         const saved = localStorage.getItem('millionaire_settings');
         if (saved) {
-            this.state.settings = { ...this.state.settings, ...JSON.parse(saved) };
+            const settings = JSON.parse(saved);
             
-            // تحديث واجهة المستخدم
-            Object.keys(this.elements.settings).forEach(key => {
-                if (this.elements.settings[key]) {
-                    this.elements.settings[key].checked = this.state.settings[key];
+            // تطبيق الإعدادات الأساسية
+            if (settings.sound !== undefined) {
+                this.state.settings.sound = settings.sound;
+                this.elements.settings.sound.checked = settings.sound;
+            }
+            if (settings.vibration !== undefined) {
+                this.state.settings.vibration = settings.vibration;
+                this.elements.settings.vibration.checked = settings.vibration;
+            }
+            if (settings.animations !== undefined) {
+                this.state.settings.animations = settings.animations;
+                this.elements.settings.animations.checked = settings.animations;
+            }
+            if (settings.autoNext !== undefined) {
+                this.state.settings.autoNext = settings.autoNext;
+                this.elements.settings.autoNext.checked = settings.autoNext;
+            }
+            
+            // تطبيق إعدادات المؤقت
+            if (settings.timerEnabled !== undefined) {
+                this.state.settings.timerEnabled = settings.timerEnabled;
+                
+                // تحديث الواجهة
+                const timerOption = document.querySelector(`.timer-option[data-timer="${settings.timerEnabled}"]`);
+                if (timerOption) {
+                    document.querySelectorAll('.timer-option').forEach(opt => opt.classList.remove('active'));
+                    timerOption.classList.add('active');
                 }
-            });
+            }
+            
+            // تطبيق أنواع الأسئلة المختارة
+            if (settings.selectedTypes) {
+                this.state.selectedTypes = settings.selectedTypes;
+                
+                // تحديث الواجهة
+                settings.selectedTypes.forEach(type => {
+                    const typeOption = document.querySelector(`.type-option[data-type="${type}"]`);
+                    if (typeOption) {
+                        typeOption.classList.add('selected');
+                    }
+                });
+            }
+            
+            // تطبيق الخلفية
+            if (settings.background) {
+                this.setBackground(settings.background.url, settings.background.type);
+            }
         }
     }
 
     // حفظ الإعدادات
     saveSettings() {
-        localStorage.setItem('millionaire_settings', JSON.stringify(this.state.settings));
+        const settings = {
+            sound: this.state.settings.sound,
+            vibration: this.state.settings.vibration,
+            animations: this.state.settings.animations,
+            autoNext: this.state.settings.autoNext,
+            timerEnabled: this.state.settings.timerEnabled,
+            selectedTypes: this.state.selectedTypes,
+            background: this.state.settings.background
+        };
+        
+        localStorage.setItem('millionaire_settings', JSON.stringify(settings));
     }
 
     // تحديث الفئات المتاحة
@@ -342,6 +599,23 @@ class MillionaireGame {
         return count;
     }
 
+    // تحديث عدد الأسئلة لكل نوع
+    updateQuestionCounts() {
+        if (!window.questionBank || !window.questionBank.categories) return;
+        
+        Object.entries(window.questionBank.categories).forEach(([category, data]) => {
+            let total = 0;
+            Object.values(data.levels).forEach(questions => {
+                total += questions.length;
+            });
+            
+            const countElement = document.getElementById(`count-${category}`);
+            if (countElement) {
+                countElement.textContent = `${total} سؤال`;
+            }
+        });
+    }
+
     // اختيار الفئة
     selectCategory(category) {
         this.state.game.currentCategory = category;
@@ -400,7 +674,7 @@ class MillionaireGame {
 
     // بدء اللعبة الرئيسية
     startGame() {
-        if (!this.state.game.currentCategory) {
+        if (!this.state.game.currentCategory && this.state.selectedTypes.length === 0) {
             this.showNotification('⚠️ الرجاء اختيار فئة الأسئلة أولاً', 'warning');
             return;
         }
@@ -463,20 +737,31 @@ class MillionaireGame {
 
     // تحميل الأسئلة
     loadQuestions() {
-        const category = this.config.categories[this.state.game.currentCategory];
-        if (!category) {
-            console.error('❌ الفئة غير موجودة:', this.state.game.currentCategory);
-            return;
+        // إذا كان هناك أنواع مختارة
+        if (this.state.selectedTypes.length > 0) {
+            let allQuestions = [];
+            
+            this.state.selectedTypes.forEach(type => {
+                const category = this.config.categories[type];
+                if (category) {
+                    const questions = category.levels[this.config.difficulty] || [];
+                    allQuestions = allQuestions.concat(questions);
+                }
+            });
+            
+            // خلط الأسئلة
+            const shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
+            this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
+        } else {
+            // استخدام الفئة الافتراضية
+            const category = this.config.categories[this.state.game.currentCategory] || 
+                           this.config.categories[Object.keys(this.config.categories)[0]];
+            if (category) {
+                const questions = category.levels[this.config.difficulty] || [];
+                const shuffled = [...questions].sort(() => Math.random() - 0.5);
+                this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
+            }
         }
-
-        const difficulty = this.config.difficulty;
-        const questions = category.levels[difficulty] || [];
-
-        // خلط الأسئلة عشوائياً
-        const shuffled = [...questions].sort(() => Math.random() - 0.5);
-
-        // أخذ العدد المطلوب فقط
-        this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
     }
 
     // عرض السؤال الحالي
@@ -676,18 +961,26 @@ class MillionaireGame {
     startTimer() {
         clearInterval(this.state.game.timer);
         
+        if (!this.state.settings.timerEnabled) {
+            // وضع بدون مؤقت
+            this.elements.gameInfo.timeLeft.textContent = '∞';
+            this.elements.gameInfo.timeLeft.parentElement.parentElement.classList.add('no-timer');
+            return;
+        }
+        
+        // وضع مع مؤقت
         this.state.game.timeLeft = this.config.timePerQuestion[this.config.difficulty];
         this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
-
+        this.elements.gameInfo.timeLeft.parentElement.parentElement.classList.remove('no-timer');
+        
         this.state.game.timer = setInterval(() => {
             this.state.game.timeLeft--;
             this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
-
-            // تغيير لون المؤقت عند اقتراب النهاية
+            
             if (this.state.game.timeLeft <= 10) {
                 this.elements.gameInfo.timeLeft.parentElement.parentElement.style.color = '#e17055';
             }
-
+            
             if (this.state.game.timeLeft <= 0) {
                 clearInterval(this.state.game.timer);
                 this.handleTimeout();
@@ -697,23 +990,23 @@ class MillionaireGame {
 
     // انتهاء الوقت
     handleTimeout() {
-        if (this.state.game.isAnswered) return;
-
-        this.state.game.isAnswered = true;
+        if (!this.state.settings.timerEnabled) return;
+        
+        clearInterval(this.state.game.timer);
         this.showNotification('⏰ انتهى الوقت!', 'error');
-
+        
         // تعطيل جميع الإجابات
         document.querySelectorAll('.answer-btn').forEach(btn => {
             btn.disabled = true;
         });
-
+        
         // إبراز الإجابة الصحيحة
         const question = this.state.game.questions[this.state.game.currentQuestion];
         const correctBtn = document.querySelector(`.answer-btn[data-index="${question.correct}"]`);
         if (correctBtn) {
             correctBtn.classList.add('correct');
         }
-
+        
         // الانتقال لشاشة النتائج بعد تأخير
         setTimeout(() => {
             this.endGame(false);
@@ -725,10 +1018,10 @@ class MillionaireGame {
         if (this.state.game.lifelinesUsed.includes(type)) {
             return;
         }
-
+        
         const question = this.state.game.questions[this.state.game.currentQuestion];
         const lifeline = this.elements.lifelines[type];
-
+        
         switch(type) {
             case '5050':
                 this.useFiftyFifty(question);
@@ -743,13 +1036,13 @@ class MillionaireGame {
                 this.useHint(question);
                 break;
         }
-
+        
         // تحديث حالة الأداة
         this.state.game.lifelinesUsed.push(type);
         lifeline.disabled = true;
         const status = lifeline.querySelector('.lifeline-status');
         if (status) status.textContent = '🔴';
-
+        
         if (this.state.settings.sound) {
             this.playSound('click');
         }
@@ -759,14 +1052,14 @@ class MillionaireGame {
     useFiftyFifty(question) {
         const wrongAnswers = [0, 1, 2, 3].filter(index => index !== question.correct);
         const toRemove = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
-
+        
         document.querySelectorAll('.answer-btn').forEach((btn, index) => {
             if (toRemove.includes(index)) {
                 btn.style.opacity = '0.3';
                 btn.disabled = true;
             }
         });
-
+        
         this.showNotification('½ تم إزالة إجابتين خاطئتين', 'info');
     }
 
@@ -776,12 +1069,12 @@ class MillionaireGame {
         const isConfident = Math.random() < 0.7;
         const suggestedAnswer = isConfident ? question.correct : 
             [0, 1, 2, 3].filter(num => num !== question.correct)[0];
-
+        
         const answerLetters = ['أ', 'ب', 'ج', 'د'];
         const friendText = isConfident ? 
             `أنا متأكد 90% أن الإجابة ${answerLetters[suggestedAnswer]} صحيحة!` :
             `أعتقد أن الإجابة ${answerLetters[suggestedAnswer]} قد تكون صحيحة...`;
-
+        
         this.showModal('📞 اتصال بصديق', `
             <div class="friend-call">
                 <div class="friend-avatar">👨‍💼</div>
@@ -798,7 +1091,7 @@ class MillionaireGame {
         // محاكاة تصويت الجمهور
         let percentages = [0, 0, 0, 0];
         percentages[question.correct] = 60 + Math.random() * 25;
-
+        
         let remaining = 100 - percentages[question.correct];
         for (let i = 0; i < 4; i++) {
             if (i !== question.correct) {
@@ -806,11 +1099,11 @@ class MillionaireGame {
                 remaining -= percentages[i];
             }
         }
-
+        
         // تعديل المجموع ليكون 100%
         const diff = 100 - percentages.reduce((a, b) => a + b);
         percentages[question.correct] += diff;
-
+        
         const answerLetters = ['أ', 'ب', 'ج', 'د'];
         let message = '<div class="audience-vote">';
         percentages.forEach((percent, index) => {
@@ -827,7 +1120,7 @@ class MillionaireGame {
             `;
         });
         message += '</div>';
-
+        
         this.showModal('👥 مساعدة الجمهور', message);
     }
 
@@ -848,12 +1141,12 @@ class MillionaireGame {
     // إنهاء اللعبة
     endGame(isWin) {
         clearInterval(this.state.game.timer);
-
+        
         // حساب الإحصائيات النهائية
         const totalTime = Math.floor((Date.now() - this.state.game.startTime) / 1000);
         const avgTime = Math.floor(totalTime / (this.state.game.currentQuestion + 1));
         const accuracy = Math.floor((this.state.game.correctAnswers / (this.state.game.currentQuestion + 1)) * 100);
-
+        
         // تحديث شاشة النتائج
         this.elements.results.icon.textContent = isWin ? '🏆' : '💡';
         this.elements.results.title.textContent = isWin ? 'مبروك! لقد فزت' : 'انتهت اللعبة';
@@ -867,7 +1160,7 @@ class MillionaireGame {
         this.elements.results.totalTime.textContent = totalTime;
         this.elements.results.avgTime.textContent = avgTime;
         this.elements.results.accuracy.textContent = accuracy + '%';
-
+        
         // تحديث إحصائيات اللاعب
         this.state.player.stats.gamesPlayed++;
         this.state.player.stats.totalCorrect += this.state.game.correctAnswers;
@@ -877,26 +1170,26 @@ class MillionaireGame {
         if (this.state.player.score > this.state.player.stats.bestScore) {
             this.state.player.stats.bestScore = this.state.player.score;
         }
-
+        
         // حساب XP الجديدة
         const xpGained = this.calculateXP(isWin, this.state.player.score, accuracy);
         this.state.player.xp += xpGained;
         
         // التحقق من الترقية للمستوى
         this.checkLevelUp();
-
+        
         // حفظ بيانات اللاعب
         this.savePlayerData();
-
+        
         // عرض الإنجازات
         this.showAchievements(isWin);
-
+        
         // عرض أفضل النتائج
         this.showLeaderboard();
-
+        
         // تبديل الشاشة
         this.switchScreen('results');
-
+        
         // تشغيل الصوت
         if (this.state.settings.sound) {
             if (isWin) {
@@ -905,7 +1198,7 @@ class MillionaireGame {
                 this.playSound('wrong');
             }
         }
-
+        
         // إشعار
         this.showNotification(
             isWin ? '🎉 فوز رائع! شاهد نتائجك' : '💪 حاول مرة أخرى، أنت تستطيع!',
@@ -948,7 +1241,8 @@ class MillionaireGame {
     updateGameInfo() {
         this.elements.gameInfo.currentScore.textContent = this.state.player.score.toLocaleString();
         this.elements.gameInfo.streakCount.textContent = this.state.player.streak;
-        this.elements.gameInfo.currentCategory.textContent = this.state.game.currentCategory;
+        this.elements.gameInfo.currentCategory.textContent = this.state.selectedTypes.length > 0 ? 
+            `${this.state.selectedTypes.length} نوع` : this.state.game.currentCategory;
         this.elements.gameInfo.currentDifficulty.textContent = 
             this.config.difficulty === 'easy' ? 'سهل' : 
             this.config.difficulty === 'medium' ? 'متوسط' : 'صعب';
@@ -964,7 +1258,7 @@ class MillionaireGame {
     // تحديث شجرة الجوائز
     updatePrizeTree() {
         if (!this.elements.prizeList) return;
-
+        
         this.elements.prizeList.innerHTML = '';
         
         this.config.prizes.forEach((prize, index) => {
@@ -988,14 +1282,14 @@ class MillionaireGame {
     // عرض الإنجازات
     showAchievements(isWin) {
         if (!this.elements.results.achievementsContainer) return;
-
+        
         const achievements = [
             { id: 'first_game', name: 'اللعبة الأولى', desc: 'إكمال لعبة كاملة', icon: '🎮', unlocked: true },
             { id: 'perfect_game', name: 'الكمال', desc: 'إجابة جميع الأسئلة بشكل صحيح', icon: '💯', unlocked: isWin && this.state.game.correctAnswers === this.config.maxQuestions },
             { id: 'millionaire', name: 'المليونير', desc: 'الفوز بالمليون دينار', icon: '💰', unlocked: isWin && this.state.player.score === 1000000 },
             { id: 'speed_demon', name: 'السرعة البرقية', desc: 'متوسط وقت إجابة أقل من 10 ثواني', icon: '⚡', unlocked: this.state.game.totalTime / (this.state.game.currentQuestion + 1) < 10 }
         ];
-
+        
         this.elements.results.achievementsContainer.innerHTML = '';
         
         achievements.forEach(achievement => {
@@ -1015,7 +1309,7 @@ class MillionaireGame {
     // عرض أفضل النتائج
     showLeaderboard() {
         if (!this.elements.results.leaderboard) return;
-
+        
         const leaderboardData = JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]');
         
         // إضافة النتيجة الحالية
@@ -1034,7 +1328,7 @@ class MillionaireGame {
         // الاحتفاظ بأفضل 10 فقط
         const top10 = leaderboardData.slice(0, 10);
         localStorage.setItem('millionaire_leaderboard', JSON.stringify(top10));
-
+        
         this.elements.results.leaderboard.innerHTML = '';
         
         top10.forEach((player, index) => {
@@ -1188,6 +1482,9 @@ class MillionaireGame {
                 <ol>
                     <li>اختر فئة الأسئلة (ثقافة، تاريخ، جغرافيا، إلخ)</li>
                     <li>اختر مستوى الصعوبة (سهل، متوسط، صعب)</li>
+                    <li>اختر إعدادات المؤقت (مع أو بدون مؤقت)</li>
+                    <li>اختر أنواع الأسئلة (يمكن اختيار أكثر من نوع)</li>
+                    <li>اختر خلفية اللعبة المناسبة</li>
                     <li>أدخل اسمك واختر صورتك الرمزية</li>
                     <li>اضغط على "بدء اللعبة الاحترافية"</li>
                 </ol>
@@ -1195,7 +1492,7 @@ class MillionaireGame {
                 <h3>⚡ أثناء اللعبة:</h3>
                 <ul>
                     <li>لكل سؤال 4 إجابات محتملة</li>
-                    <li>اختر الإجابة الصحيحة قبل انتهاء الوقت</li>
+                    <li>اختر الإجابة الصحيحة قبل انتهاء الوقت (إذا كان المؤقت مفعلاً)</li>
                     <li>استخدم أدوات المساعدة بحكمة (4 أدوات)</li>
                     <li>يمكنك الانسحاب في أي وقت والحصول على المبلغ الحالي</li>
                 </ul>
@@ -1271,6 +1568,12 @@ class MillionaireGame {
                     <li><strong>سهل:</strong> الوقت: 45 ثانية، 4 أدوات مساعدة</li>
                     <li><strong>متوسط:</strong> الوقت: 30 ثانية، 3 أدوات مساعدة</li>
                     <li><strong>صعب:</strong> الوقت: 20 ثانية، 2 أدوات مساعدة</li>
+                </ul>
+                
+                <h3>⚙️ إعدادات المؤقت:</h3>
+                <ul>
+                    <li><strong>مع مؤقت:</strong> مناسب للتحدي والسرعة</li>
+                    <li><strong>بدون مؤقت:</strong> مناسب للتعلم والتفكير العميق</li>
                 </ul>
                 
                 <h3>🏆 نظام الترقية:</h3>
@@ -1386,7 +1689,7 @@ class MillionaireGame {
     showNotification(message, type = 'info') {
         const container = document.getElementById('notification-container');
         if (!container) return;
-
+        
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.innerHTML = `
@@ -1395,9 +1698,9 @@ class MillionaireGame {
             </div>
             <div class="notification-message">${message}</div>
         `;
-
+        
         container.appendChild(notification);
-
+        
         // إزالة الإشعار بعد 5 ثواني
         setTimeout(() => {
             notification.style.animation = 'slideOutRight 0.3s ease';
@@ -1412,21 +1715,21 @@ class MillionaireGame {
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
         const modalClose = document.getElementById('modal-close');
-
+        
         if (!overlay || !modal) return;
-
+        
         modalTitle.textContent = title;
         modalBody.innerHTML = content;
-
+        
         overlay.classList.add('active');
-
+        
         const closeModal = () => {
             overlay.classList.remove('active');
             if (this.state.settings.sound) {
                 this.playSound('click');
             }
         };
-
+        
         modalClose.onclick = closeModal;
         overlay.onclick = (e) => {
             if (e.target === overlay) closeModal();
@@ -1443,7 +1746,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // جعل الكائن متاحاً عالمياً للاستخدام من وحدة التحكم
     window.game = game;
     
-    console.log('🚀 Millionaire Game 2.0 - Professional Edition');
+    console.log('🚀 Millionaire Game 2.1 - Professional Edition');
     console.log('📊 System initialized successfully');
     console.log('🎮 Ready to play!');
 });
