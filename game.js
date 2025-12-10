@@ -1,25 +1,26 @@
-// ==== نظام لعبة من سريع المليون ====
+// ===== لعبة من سيربح المليون - نسخة الهاتف =====
 class MillionaireGame {
     constructor() {
         this.config = {
-            version: '2.1.0',
-            maxQuestions: 15,
+            version: '2.0.0',
+            maxQuestions: 10,
             prizes: [
                 100, 200, 300, 500, 1000,
-                2000, 4000, 8000, 16000, 32000,
-                64000, 125000, 250000, 500000, 1000000
+                2000, 4000, 8000, 16000, 32000
             ],
-            safeLevels: [5, 10],
             timePerQuestion: {
-                easy: 45,
-                medium: 30,
-                hard: 20
+                easy: 30,
+                medium: 20,
+                hard: 15
             },
             lifelines: {
-                easy: 4,
-                medium: 3,
-                hard: 2
-            }
+                easy: 3,
+                medium: 2,
+                hard: 1
+            },
+            categories: {},
+            difficulty: 'easy',
+            currentCategory: 'ثقافة'
         };
 
         this.state = {
@@ -30,7 +31,7 @@ class MillionaireGame {
                 score: 0,
                 level: 1,
                 xp: 0,
-                xpToNext: 1000,
+                xpToNext: 100,
                 streak: 0,
                 stats: {
                     gamesPlayed: 0,
@@ -55,45 +56,34 @@ class MillionaireGame {
             },
             settings: {
                 sound: true,
+                vibration: true,
                 animations: true,
                 autoNext: true,
-                timerEnabled: true,
-                background: 'blue'
-            },
-            currentCategory: 'ثقافة',
-            currentDifficulty: 'easy'
+                timerEnabled: true
+            }
         };
 
         this.elements = {};
         this.init();
     }
 
-    // ==== تهيئة النظام ====
+    // تهيئة اللعبة
     init() {
         this.cacheElements();
         this.bindEvents();
         this.loadSettings();
-        this.loadPlayerData();
-        this.updateCategories();
+        this.loadCategories();
         this.updatePlayerInfo();
-        this.showNotification('🎮 النظام جاهز للعب!', 'success');
+        this.showNotification('مرحباً في من سيربح المليون!', 'info');
     }
 
-    // ==== تخزين عناصر DOM ====
+    // تخزين عناصر DOM
     cacheElements() {
         // الشاشات
         this.elements.screens = {
             start: document.getElementById('start-screen'),
             game: document.getElementById('game-screen'),
             results: document.getElementById('results-screen')
-        };
-
-        // أزرار التنقل
-        this.elements.navBtns = {
-            stats: document.getElementById('stats-btn'),
-            sound: document.getElementById('sound-btn'),
-            help: document.getElementById('help-btn'),
-            admin: document.getElementById('admin-btn')
         };
 
         // بيانات اللاعب
@@ -106,7 +96,7 @@ class MillionaireGame {
             xpProgress: document.getElementById('xp-progress')
         };
 
-        // التصنيفات
+        // الفئات
         this.elements.categories = document.getElementById('categories-container');
 
         // مستويات الصعوبة
@@ -115,21 +105,10 @@ class MillionaireGame {
         // إعدادات المؤقت
         this.elements.timerOptions = document.querySelectorAll('.timer-option');
 
-        // الخلفيات
-        this.elements.bgOptions = document.querySelectorAll('.bg-option');
-
-        // الإعدادات
-        this.elements.settings = {
-            sound: document.getElementById('sound-enabled'),
-            animations: document.getElementById('animations-enabled'),
-            autoNext: document.getElementById('auto-next')
-        };
-
-        // أزرار البدء
+        // الأزرار
         this.elements.startBtns = {
             quick: document.getElementById('quick-play'),
-            start: document.getElementById('start-game'),
-            tutorial: document.getElementById('tutorial-btn')
+            start: document.getElementById('start-game')
         };
 
         // معلومات اللعبة
@@ -143,8 +122,7 @@ class MillionaireGame {
             currentDifficulty: document.getElementById('current-difficulty'),
             questionValue: document.getElementById('question-value'),
             questionText: document.getElementById('question-text'),
-            questionHint: document.getElementById('question-hint'),
-            gameProgress: document.getElementById('game-progress')
+            questionHint: document.getElementById('question-hint')
         };
 
         // الإجابات
@@ -153,12 +131,10 @@ class MillionaireGame {
         // أدوات المساعدة
         this.elements.lifelines = {
             '5050': document.getElementById('lifeline-5050'),
-            'call': document.getElementById('lifeline-call'),
-            'audience': document.getElementById('lifeline-audience'),
             'hint': document.getElementById('lifeline-hint')
         };
 
-        // التحكم
+        // أزرار التحكم
         this.elements.controls = {
             quit: document.getElementById('quit-btn'),
             next: document.getElementById('next-btn'),
@@ -177,9 +153,7 @@ class MillionaireGame {
             correctCount: document.getElementById('correct-count'),
             totalTime: document.getElementById('total-time'),
             avgTime: document.getElementById('avg-time'),
-            accuracy: document.getElementById('accuracy'),
-            achievementsContainer: document.getElementById('achievements-container'),
-            leaderboard: document.getElementById('leaderboard')
+            accuracy: document.getElementById('accuracy')
         };
 
         // الأصوات
@@ -190,16 +164,15 @@ class MillionaireGame {
             win: document.getElementById('sound-win')
         };
 
-        // النافذة المنبثقة
-        this.elements.modal = {
-            overlay: document.getElementById('modal-overlay'),
-            title: document.getElementById('modal-title'),
-            body: document.getElementById('modal-body'),
-            close: document.getElementById('modal-close')
+        // أزرار التنقل
+        this.elements.navBtns = {
+            stats: document.getElementById('stats-btn'),
+            sound: document.getElementById('sound-btn'),
+            help: document.getElementById('help-btn')
         };
     }
 
-    // ==== ربط الأحداث ====
+    // ربط الأحداث
     bindEvents() {
         // تحديث اسم اللاعب
         this.elements.player.name.addEventListener('input', (e) => {
@@ -207,13 +180,13 @@ class MillionaireGame {
             this.elements.player.currentName.textContent = this.state.player.name;
         });
 
-        // تغيير الصورة الرمزية
+        // تحديث الصورة الرمزية
         this.elements.player.avatar.addEventListener('change', (e) => {
             this.state.player.avatar = e.target.value;
             this.elements.player.currentAvatar.textContent = this.state.player.avatar;
         });
 
-        // اختيار التصنيف
+        // اختيار الفئة
         this.elements.categories.addEventListener('click', (e) => {
             const categoryBtn = e.target.closest('.category-btn');
             if (categoryBtn) {
@@ -221,18 +194,10 @@ class MillionaireGame {
             }
         });
 
-        // خيار مستوى الصعوبة
+        // اختيار مستوى الصعوبة
         this.elements.difficultyOptions.forEach(option => {
             option.addEventListener('click', () => {
                 this.selectDifficulty(option.dataset.level);
-            });
-        });
-
-        // تحديث الإعدادات
-        Object.keys(this.elements.settings).forEach(key => {
-            this.elements.settings[key].addEventListener('change', (e) => {
-                this.state.settings[key] = e.target.checked;
-                this.saveSettings();
             });
         });
 
@@ -243,26 +208,15 @@ class MillionaireGame {
                 option.classList.add('active');
                 this.state.settings.timerEnabled = option.dataset.timer === 'true';
                 this.saveSettings();
-                if (this.state.settings.sound) this.playSound('click');
-            });
-        });
-
-        // خلفية اللعبة
-        this.elements.bgOptions.forEach(option => {
-            option.addEventListener('click', () => {
-                this.elements.bgOptions.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                this.state.settings.background = option.dataset.bg;
-                this.setBackground(this.state.settings.background);
-                this.saveSettings();
-                if (this.state.settings.sound) this.playSound('click');
+                if (this.state.settings.sound) {
+                    this.playSound('click');
+                }
             });
         });
 
         // أزرار البدء
         this.elements.startBtns.quick.addEventListener('click', () => this.startQuickGame());
         this.elements.startBtns.start.addEventListener('click', () => this.startGame());
-        this.elements.startBtns.tutorial.addEventListener('click', () => this.showTutorial());
 
         // أدوات المساعدة
         Object.keys(this.elements.lifelines).forEach(key => {
@@ -284,115 +238,79 @@ class MillionaireGame {
         this.elements.navBtns.sound.addEventListener('click', () => this.toggleSound());
         this.elements.navBtns.stats.addEventListener('click', () => this.showStats());
         this.elements.navBtns.help.addEventListener('click', () => this.showHelp());
-        this.elements.navBtns.admin.addEventListener('click', () => this.showAdminPanel());
 
-        // زر إغلاق النافذة المنبثقة
-        this.elements.modal.close.addEventListener('click', () => this.hideModal());
-        this.elements.modal.overlay.addEventListener('click', (e) => {
-            if (e.target === this.elements.modal.overlay) this.hideModal();
-        });
-
-        // زر Escape للخروج
+        // زر الهروب
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.state.screen === 'game') {
                 this.quitGame();
             }
         });
+
+        // تحسينات اللمس
+        this.setupTouchEvents();
     }
 
-    // ==== تحميل الإعدادات ====
-    loadSettings() {
-        const saved = localStorage.getItem('millionaire_settings');
-        if (saved) {
-            try {
-                const settings = JSON.parse(saved);
-                Object.assign(this.state.settings, settings);
-                
-                // تطبيق الإعدادات
-                this.elements.settings.sound.checked = this.state.settings.sound;
-                this.elements.settings.animations.checked = this.state.settings.animations;
-                this.elements.settings.autoNext.checked = this.state.settings.autoNext;
-                
-                // تطبيق إعدادات المؤقت
-                const timerOption = document.querySelector(`.timer-option[data-timer="${this.state.settings.timerEnabled}"]`);
-                if (timerOption) {
-                    this.elements.timerOptions.forEach(opt => opt.classList.remove('active'));
-                    timerOption.classList.add('active');
-                }
-                
-                // تطبيق الخلفية
-                this.setBackground(this.state.settings.background);
-                const bgOption = document.querySelector(`.bg-option[data-bg="${this.state.settings.background}"]`);
-                if (bgOption) {
-                    this.elements.bgOptions.forEach(opt => opt.classList.remove('selected'));
-                    bgOption.classList.add('selected');
-                }
-            } catch (error) {
-                console.error('❌ خطأ في تحميل الإعدادات:', error);
+    // إعداد أحداث اللمس
+    setupTouchEvents() {
+        // منع التمرير غير المقصود
+        document.addEventListener('touchmove', (e) => {
+            if (e.target.closest('.answers-grid') || e.target.closest('.lifelines-grid')) {
+                e.preventDefault();
             }
-        }
-    }
+        }, { passive: false });
 
-    // ==== حفظ الإعدادات ====
-    saveSettings() {
-        localStorage.setItem('millionaire_settings', JSON.stringify(this.state.settings));
-    }
-
-    // ==== تحميل بيانات اللاعب ====
-    loadPlayerData() {
-        const saved = localStorage.getItem('millionaire_player');
-        if (saved) {
-            try {
-                const playerData = JSON.parse(saved);
-                Object.assign(this.state.player, playerData);
-                this.updatePlayerInfo();
-            } catch (error) {
-                console.error('❌ خطأ في تحميل بيانات اللاعب:', error);
+        // تأثيرات اللمس
+        document.addEventListener('touchstart', (e) => {
+            const target = e.target.closest('.answer-btn, .lifeline-btn, .btn, .control-btn, .action-btn');
+            if (target) {
+                target.style.transform = 'scale(0.95)';
             }
-        }
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            const target = e.target.closest('.answer-btn, .lifeline-btn, .btn, .control-btn, .action-btn');
+            if (target) {
+                target.style.transform = '';
+            }
+        }, { passive: true });
     }
 
-    // ==== حفظ بيانات اللاعب ====
-    savePlayerData() {
-        localStorage.setItem('millionaire_player', JSON.stringify(this.state.player));
+    // تحميل الفئات
+    loadCategories() {
+        const categories = [
+            { id: 'ثقافة', name: 'ثقافة', icon: '📚' },
+            { id: 'تاريخ', name: 'تاريخ', icon: '🏛️' },
+            { id: 'جغرافيا', name: 'جغرافيا', icon: '🌍' },
+            { id: 'علوم', name: 'علوم', icon: '🔬' },
+            { id: 'رياضة', name: 'رياضة', icon: '⚽' },
+            { id: 'أطفال', name: 'أطفال', icon: '🧸' },
+            { id: 'سياسة', name: 'سياسة', icon: '💼' },
+            { id: 'شاملة', name: 'شاملة', icon: '🎯' }
+        ];
+
+        this.config.categories = {};
+        categories.forEach(cat => {
+            this.config.categories[cat.id] = cat;
+        });
+
+        this.renderCategories();
     }
 
-    // ==== تعيين الخلفية ====
-    setBackground(type) {
-        const gradients = {
-            blue: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            gold: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
-            green: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-        };
-        
-        document.body.style.background = gradients[type] || gradients.blue;
-        document.body.style.backgroundAttachment = 'fixed';
-        document.body.style.backgroundSize = 'cover';
-    }
+    // عرض الفئات
+    renderCategories() {
+        if (!this.elements.categories) return;
 
-    // ==== تحديث الفئات المتاحة ====
-    updateCategories() {
-        if (typeof window.questionBank === 'undefined') {
-            console.error('❌ بنك الأسئلة غير موجود');
-            this.showNotification('⚠️ جاري تحميل الأسئلة...', 'warning');
-            return;
-        }
-
-        const categories = window.questionBank.getCategories();
         this.elements.categories.innerHTML = '';
-
-        categories.forEach(category => {
-            const questionCount = window.questionBank.getQuestionsCount(category, this.state.currentDifficulty);
+        Object.values(this.config.categories).forEach(category => {
             const btn = document.createElement('button');
             btn.className = 'category-btn';
-            btn.dataset.category = category;
+            btn.dataset.category = category.id;
             btn.innerHTML = `
-                <div class="category-icon">${window.questionBank.categories[category].icon}</div>
-                <div class="category-name">${category}</div>
-                <div class="category-count">${questionCount} سؤال</div>
+                <div class="category-icon">${category.icon}</div>
+                <div class="category-name">${category.name}</div>
             `;
 
-            if (category === this.state.currentCategory) {
+            if (category.id === this.state.game.currentCategory) {
                 btn.classList.add('selected');
             }
 
@@ -400,9 +318,9 @@ class MillionaireGame {
         });
     }
 
-    // ==== اختيار التصنيف ====
+    // اختيار الفئة
     selectCategory(category) {
-        this.state.currentCategory = category;
+        this.state.game.currentCategory = category;
         
         // تحديث الواجهة
         document.querySelectorAll('.category-btn').forEach(btn => {
@@ -413,12 +331,15 @@ class MillionaireGame {
         });
 
         this.elements.gameInfo.currentCategory.textContent = category;
-        if (this.state.settings.sound) this.playSound('click');
+        
+        if (this.state.settings.sound) {
+            this.playSound('click');
+        }
     }
 
-    // ==== اختيار مستوى الصعوبة ====
+    // اختيار مستوى الصعوبة
     selectDifficulty(level) {
-        this.state.currentDifficulty = level;
+        this.config.difficulty = level;
         
         // تحديث الواجهة
         this.elements.difficultyOptions.forEach(option => {
@@ -428,41 +349,30 @@ class MillionaireGame {
             }
         });
 
-        // تحديث وصف المستوى
-        this.elements.gameInfo.currentDifficulty.textContent = 
-            level === 'easy' ? 'سهل' : 
+        this.elements.gameInfo.currentDifficulty.textContent =
+            level === 'easy' ? 'سهل' :
             level === 'medium' ? 'متوسط' : 'صعب';
 
-        // تحديث الفئات
-        this.updateCategories();
-        
-        if (this.state.settings.sound) this.playSound('click');
+        if (this.state.settings.sound) {
+            this.playSound('click');
+        }
     }
 
-    // ==== بدء لعبة سريعة ====
+    // بدء لعبة سريعة
     startQuickGame() {
-        // اختيار عشوائي للتصنيف
-        const categories = window.questionBank.getCategories();
+        const categories = Object.keys(this.config.categories);
         const randomCategory = categories[Math.floor(Math.random() * categories.length)];
         this.selectCategory(randomCategory);
 
-        // اختيار عشوائي للمستوى
         const levels = ['easy', 'medium', 'hard'];
         const randomLevel = levels[Math.floor(Math.random() * levels.length)];
         this.selectDifficulty(randomLevel);
 
-        // بدء اللعبة
         this.startGame();
     }
 
-    // ==== بدء اللعبة الرئيسية ====
+    // بدء اللعبة الرئيسية
     startGame() {
-        // التحقق من وجود تصنيف مختار
-        if (!this.state.currentCategory) {
-            this.showNotification('⚠️ الرجاء اختيار تصنيف', 'warning');
-            return;
-        }
-
         // إعادة تعيين حالة اللعبة
         this.resetGameState();
 
@@ -470,7 +380,7 @@ class MillionaireGame {
         this.loadQuestions();
 
         if (this.state.game.questions.length === 0) {
-            this.showNotification('❌ لا توجد أسئلة في هذا التصنيف', 'error');
+            this.showNotification('لا توجد أسئلة في هذه الفئة', 'error');
             return;
         }
 
@@ -489,16 +399,16 @@ class MillionaireGame {
         // تسجيل وقت البدء
         this.state.game.startTime = Date.now();
 
-        this.showNotification('🎮 بدأت اللعبة، حظاً موفقاً!', 'success');
+        this.showNotification('بدأت اللعبة! حظاً موفقاً', 'success');
     }
 
-    // ==== إعادة تعيين حالة اللعبة ====
+    // إعادة تعيين حالة اللعبة
     resetGameState() {
         this.state.game = {
             currentQuestion: 0,
             selectedAnswer: null,
             isAnswered: false,
-            timeLeft: this.config.timePerQuestion[this.state.currentDifficulty],
+            timeLeft: this.config.timePerQuestion[this.config.difficulty],
             timer: null,
             lifelinesUsed: [],
             questions: [],
@@ -511,31 +421,100 @@ class MillionaireGame {
         Object.keys(this.elements.lifelines).forEach(key => {
             const lifeline = this.elements.lifelines[key];
             lifeline.disabled = false;
-            const status = lifeline.querySelector('.lifeline-status');
-            if (status) status.textContent = '🔓';
+            lifeline.style.opacity = '1';
         });
 
-        // إعادة تعيين زر التالي
+        // تعطيل زر التالي
         this.elements.controls.next.disabled = true;
     }
 
-    // ==== تحميل الأسئلة ====
+    // تحميل الأسئلة
     loadQuestions() {
-        const category = window.questionBank.categories[this.state.currentCategory];
-        if (!category) return;
-
-        const questions = category.levels[this.state.currentDifficulty] || [];
-        if (questions.length === 0) {
-            // إذا لم توجد أسئلة في هذا المستوى، استخدم المستوى السهل
-            this.state.game.questions = category.levels.easy || [];
-        } else {
-            // خلط الأسئلة وأخذ العدد المطلوب
-            const shuffled = [...questions].sort(() => Math.random() - 0.5);
-            this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
-        }
+        // هذا هو مكان الربط بقاعدة البيانات
+        // حالياً نستخدم أسئلة تجريبية
+        
+        const sampleQuestions = this.getSampleQuestions();
+        const shuffled = [...sampleQuestions].sort(() => Math.random() - 0.5);
+        this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
     }
 
-    // ==== عرض السؤال الحالي ====
+    // الحصول على أسئلة تجريبية
+    getSampleQuestions() {
+        return [
+            {
+                question: "ما هي عاصمة فرنسا؟",
+                answers: ["روما", "برلين", "باريس", "لندن"],
+                correct: 2,
+                hint: "تقع في أوروبا الغربية",
+                category: "ثقافة"
+            },
+            {
+                question: "كم عدد أيام الأسبوع؟",
+                answers: ["5", "6", "7", "8"],
+                correct: 2,
+                hint: "من السبت إلى الجمعة",
+                category: "أطفال"
+            },
+            {
+                question: "ما هو أطول نهر في العالم؟",
+                answers: ["الأمازون", "النيل", "يانغتسي", "الميسيسيبي"],
+                correct: 1,
+                hint: "يوجد في أفريقيا",
+                category: "جغرافيا"
+            },
+            {
+                question: "من هو مخترع المصباح الكهربائي؟",
+                answers: ["نيوتن", "أينشتاين", "اديسون", "تسلا"],
+                correct: 2,
+                hint: "أمريكي شهير",
+                category: "علوم"
+            },
+            {
+                question: "في أي سنة هجرية حدثت معركة بدر؟",
+                answers: ["1 هـ", "2 هـ", "3 هـ", "4 هـ"],
+                correct: 1,
+                hint: "السنة الثانية للهجرة",
+                category: "تاريخ"
+            },
+            {
+                question: "ما هي عاصمة الولايات المتحدة الأمريكية؟",
+                answers: ["نيويورك", "لوس أنجلوس", "واشنطن", "شيكاغو"],
+                correct: 2,
+                hint: "سميت على اسم رئيس",
+                category: "سياسة"
+            },
+            {
+                question: "كم عدد لاعبي كرة القدم في كل فريق؟",
+                answers: ["10", "11", "12", "13"],
+                correct: 1,
+                hint: "بما فيهم حارس المرمى",
+                category: "رياضة"
+            },
+            {
+                question: "من هو مؤلف كتاب 'الأمير'؟",
+                answers: ["أفلاطون", "ميكافيلي", "أرسطو", "هوبز"],
+                correct: 1,
+                hint: "إيطالي من عصر النهضة",
+                category: "ثقافة"
+            },
+            {
+                question: "ما هو لون التفاحة الناضجة؟",
+                answers: ["أخضر", "أحمر", "أصفر", "برتقالي"],
+                correct: 1,
+                hint: "عادة ما تكون حمراء",
+                category: "أطفال"
+            },
+            {
+                question: "ما هو أكبر محيط في العالم؟",
+                answers: ["المحيط الهندي", "المحيط الأطلسي", "المحيط الهادئ", "المحيط المتجمد"],
+                correct: 2,
+                hint: "أكبر من جميع المحيطات",
+                category: "جغرافيا"
+            }
+        ];
+    }
+
+    // عرض السؤال الحالي
     displayQuestion() {
         const question = this.state.game.questions[this.state.game.currentQuestion];
         if (!question) return;
@@ -546,22 +525,16 @@ class MillionaireGame {
             this.config.prizes[this.state.game.currentQuestion].toLocaleString() + ' دينار';
         this.elements.gameInfo.questionText.textContent = question.question;
         this.elements.gameInfo.questionsLeft.textContent = 
-            `${this.config.maxQuestions - this.state.game.currentQuestion - 1} سؤال متبقى`;
+            `${this.config.maxQuestions - this.state.game.currentQuestion - 1} أسئلة متبقية`;
 
-        // تحديث التلميح
-        this.elements.gameInfo.questionHint.innerHTML = `
-            <i class="fas fa-lightbulb"></i>
-            <span>${question.hint || "استخدم أدوات المساعدة للحصول على تلميحات"}</span>
-        `;
+        // إخفاء التلميح
+        this.elements.gameInfo.questionHint.style.display = 'none';
 
         // عرض الإجابات
         this.renderAnswers(question.answers);
-
-        // تحديث شريط التقدم
-        this.updateProgressBar();
     }
 
-    // ==== عرض الإجابات ====
+    // عرض الإجابات
     renderAnswers(answers) {
         if (!this.elements.answersContainer) return;
 
@@ -578,11 +551,12 @@ class MillionaireGame {
             `;
 
             btn.addEventListener('click', () => this.selectAnswer(index));
+
             this.elements.answersContainer.appendChild(btn);
         });
     }
 
-    // ==== اختيار إجابة ====
+    // اختيار إجابة
     selectAnswer(index) {
         if (this.state.game.isAnswered) return;
 
@@ -605,7 +579,7 @@ class MillionaireGame {
         const isCorrect = index === question.correct;
 
         // تسجيل الوقت المستغرق
-        const timeUsed = this.config.timePerQuestion[this.state.currentDifficulty] - this.state.game.timeLeft;
+        const timeUsed = this.config.timePerQuestion[this.config.difficulty] - this.state.game.timeLeft;
         this.state.game.totalTime += timeUsed;
 
         if (isCorrect) {
@@ -616,12 +590,9 @@ class MillionaireGame {
 
         // إيقاف المؤقت
         clearInterval(this.state.game.timer);
-
-        // تحديث الإحصائيات
-        this.updatePlayerStats(isCorrect);
     }
 
-    // ==== التعامل مع الإجابة الصحيحة ====
+    // التعامل مع الإجابة الصحيحة
     handleCorrectAnswer(selectedIndex) {
         const btn = document.querySelector(`.answer-btn[data-index="${selectedIndex}"]`);
         if (btn) {
@@ -644,10 +615,15 @@ class MillionaireGame {
             this.playSound('correct');
         }
 
-        this.showNotification('✅ إجابة صحيحة!', 'success');
+        // الاهتزاز
+        if (this.state.settings.vibration && navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
+
+        this.showNotification('إجابة صحيحة! مبروك', 'success');
     }
 
-    // ==== التعامل مع الإجابة الخاطئة ====
+    // التعامل مع الإجابة الخاطئة
     handleWrongAnswer(selectedIndex, correctIndex) {
         // إبراز الإجابة الخاطئة
         const wrongBtn = document.querySelector(`.answer-btn[data-index="${selectedIndex}"]`);
@@ -670,27 +646,30 @@ class MillionaireGame {
             this.playSound('wrong');
         }
 
-        this.showNotification('❌ إجابة خاطئة', 'error');
+        // الاهتزاز
+        if (this.state.settings.vibration && navigator.vibrate) {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+        }
+
+        this.showNotification('إجابة خاطئة! حاول مرة أخرى', 'error');
         
         // الانتقال لشاشة النتائج بعد تأخير
         setTimeout(() => {
             this.endGame(false);
-        }, 2000);
+        }, 3000);
     }
 
-    // ==== الانتقال للسؤال التالي ====
+    // الانتقال للسؤال التالي
     nextQuestion() {
         this.state.game.currentQuestion++;
 
         if (this.state.game.currentQuestion >= this.config.maxQuestions) {
-            // فوز بالمليون - انتهت جميع الأسئلة
             this.endGame(true);
             return;
         }
 
         if (this.state.game.currentQuestion >= this.state.game.questions.length) {
-            // لا توجد أسئلة كافية
-            this.showNotification('⚠️ انتهت الأسئلة المتاحة', 'warning');
+            this.showNotification('لا توجد أسئلة كافية', 'warning');
             this.endGame(true);
             return;
         }
@@ -698,7 +677,7 @@ class MillionaireGame {
         // إعادة تعيين حالة السؤال
         this.state.game.selectedAnswer = null;
         this.state.game.isAnswered = false;
-        this.state.game.timeLeft = this.config.timePerQuestion[this.state.currentDifficulty];
+        this.state.game.timeLeft = this.config.timePerQuestion[this.config.difficulty];
 
         // تحديث الواجهة
         this.elements.controls.next.disabled = true;
@@ -711,28 +690,24 @@ class MillionaireGame {
         this.startTimer();
     }
 
-    // ==== بدء المؤقت ====
+    // بدء المؤقت
     startTimer() {
         clearInterval(this.state.game.timer);
 
         if (!this.state.settings.timerEnabled) {
-            // لعب بدون مؤقت
             this.elements.gameInfo.timeLeft.textContent = '∞';
-            this.elements.gameInfo.timeLeft.parentElement.parentElement.classList.add('no-timer');
             return;
         }
 
-        // بدء المؤقت
-        this.state.game.timeLeft = this.config.timePerQuestion[this.state.currentDifficulty];
+        this.state.game.timeLeft = this.config.timePerQuestion[this.config.difficulty];
         this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
-        this.elements.gameInfo.timeLeft.parentElement.parentElement.classList.remove('no-timer');
 
         this.state.game.timer = setInterval(() => {
             this.state.game.timeLeft--;
             this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
 
             if (this.state.game.timeLeft <= 10) {
-                this.elements.gameInfo.timeLeft.parentElement.parentElement.style.color = '#e17055';
+                this.elements.gameInfo.timeLeft.style.color = '#e17055';
             }
 
             if (this.state.game.timeLeft <= 0) {
@@ -742,19 +717,19 @@ class MillionaireGame {
         }, 1000);
     }
 
-    // ==== التعامل مع انتهاء الوقت ====
+    // انتهاء الوقت
     handleTimeout() {
         if (!this.state.settings.timerEnabled) return;
 
         clearInterval(this.state.game.timer);
-        this.showNotification('⏰ انتهى الوقت!', 'error');
+        this.showNotification("انتهى الوقت!", 'error');
 
         // تعطيل جميع الإجابات
         document.querySelectorAll('.answer-btn').forEach(btn => {
             btn.disabled = true;
         });
 
-        // إبراز الإجابة الصحيحة
+        // إظهار الإجابة الصحيحة
         const question = this.state.game.questions[this.state.game.currentQuestion];
         const correctBtn = document.querySelector(`.answer-btn[data-index="${question.correct}"]`);
         if (correctBtn) {
@@ -764,10 +739,10 @@ class MillionaireGame {
         // الانتقال لشاشة النتائج بعد تأخير
         setTimeout(() => {
             this.endGame(false);
-        }, 2000);
+        }, 3000);
     }
 
-    // ==== استخدام أداة المساعدة ====
+    // استخدام أداة المساعدة
     useLifeline(type) {
         if (this.state.game.lifelinesUsed.includes(type)) {
             return;
@@ -780,12 +755,6 @@ class MillionaireGame {
             case '5050':
                 this.useFiftyFifty(question);
                 break;
-            case 'call':
-                this.useCallFriend(question);
-                break;
-            case 'audience':
-                this.useAudienceHelp(question);
-                break;
             case 'hint':
                 this.useHint(question);
                 break;
@@ -794,15 +763,14 @@ class MillionaireGame {
         // تحديث حالة الأداة
         this.state.game.lifelinesUsed.push(type);
         lifeline.disabled = true;
-        const status = lifeline.querySelector('.lifeline-status');
-        if (status) status.textContent = '🔒';
+        lifeline.style.opacity = '0.6';
         
         if (this.state.settings.sound) {
             this.playSound('click');
         }
     }
 
-    // ==== 50:50 ====
+    // 50:50
     useFiftyFifty(question) {
         const wrongAnswers = [0, 1, 2, 3].filter(index => index !== question.correct);
         const toRemove = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
@@ -814,87 +782,21 @@ class MillionaireGame {
             }
         });
 
-        this.showNotification('✅ حُذفت إجابتان خاطئتان', 'info');
+        this.showNotification('تم حذف إجابتين خاطئتين', 'info');
     }
 
-    // ==== الاتصال بصديق ====
-    useCallFriend(question) {
-        // محاكاة نصيحة الصديق
-        const isConfident = Math.random() < 0.7;
-        const suggestedAnswer = isConfident ? question.correct :
-            [0, 1, 2, 3].filter(num => num !== question.correct)[0];
-
-        const answerLetters = ['أ', 'ب', 'ج', 'د'];
-        const friendText = isConfident ?
-            `أعتقد أن الإجابة ${answerLetters[suggestedAnswer]} صحيحة بنسبة 80%` :
-            `لا أعرف بالتأكيد، لكن ربما الإجابة ${answerLetters[suggestedAnswer]}`;
-
-        this.showModal('📞 اتصال بصديق', `
-            <div class="friend-call">
-                <div class="friend-avatar">👨‍💼</div>
-                <div class="friend-message">
-                    <p>"${friendText}"</p>
-                    <p class="friend-confidence">مستوى الثقة: ${isConfident ? 'عالٍ' : 'منخفض'}</p>
-                </div>
-            </div>
-        `);
-    }
-
-    // ==== مساعدة الجمهور ====
-    useAudienceHelp(question) {
-        // محاكاة تصويت الجمهور
-        let percentages = [0, 0, 0, 0];
-        percentages[question.correct] = 60 + Math.random() * 25;
-
-        let remaining = 100 - percentages[question.correct];
-        for (let i = 0; i < 4; i++) {
-            if (i !== question.correct) {
-                percentages[i] = Math.random() * remaining * 0.7;
-                remaining -= percentages[i];
-            }
-        }
-
-        // التعديل ليكون المجموع 100%
-        const diff = 100 - percentages.reduce((a, b) => a + b);
-        percentages[question.correct] += diff;
-
-        const answerLetters = ['أ', 'ب', 'ج', 'د'];
-        let message = '<div class="audience-vote">';
-        percentages.forEach((percent, index) => {
-            message += `
-                <div class="vote-item">
-                    <div class="vote-letter">${answerLetters[index]}</div>
-                    <div class="vote-bar">
-                        <div class="vote-fill" style="width: ${percent}%"></div>
-                    </div>
-                    <div class="vote-percent">${Math.round(percent)}%</div>
-                </div>
-            `;
-        });
-        message += '</div>';
-
-        this.showModal('👥 مساعدة الجمهور', message);
-    }
-
-    // ==== استخدام التلميح ====
+    // استخدام التلميح
     useHint(question) {
-        const hints = question.hints || [
-            'حاول التفكير بشكل مختلف',
-            'راجع معلوماتك الأساسية',
-            'التركيز على الكلمات المفتاحية'
-        ];
-        const randomHint = hints[Math.floor(Math.random() * hints.length)];
-
+        const hint = question.hint || 'حاول التفكير بشكل مختلف';
         this.elements.gameInfo.questionHint.innerHTML = `
             <i class="fas fa-lightbulb"></i>
-            <span>${randomHint}</span>
+            <span>${hint}</span>
         `;
-
         this.elements.gameInfo.questionHint.style.display = 'flex';
-        this.showNotification('💡 تلميح: ' + randomHint, 'info');
+        this.showNotification('تلميح: ' + hint, 'info');
     }
 
-    // ==== إنهاء اللعبة ====
+    // إنهاء اللعبة
     endGame(isWin) {
         clearInterval(this.state.game.timer);
 
@@ -903,8 +805,8 @@ class MillionaireGame {
         const accuracy = Math.floor((this.state.game.correctAnswers / (this.state.game.currentQuestion + 1)) * 100);
 
         // تحديث شاشة النتائج
-        this.elements.results.icon.textContent = isWin ? '🏆' : '😢';
-        this.elements.results.title.textContent = isWin ? 'مبروك! فزت!' : 'انتهت اللعبة';
+        this.elements.results.icon.textContent = isWin ? '🏆' : '💡';
+        this.elements.results.title.textContent = isWin ? 'مبروك! لقد فزت' : 'انتهت اللعبة';
         this.elements.results.subtitle.textContent = isWin ? 
             'إنجاز رائع يستحق الاحتفال' : 'حاول مرة أخرى لتحقيق نتيجة أفضل';
 
@@ -930,17 +832,11 @@ class MillionaireGame {
         const xpGained = this.calculateXP(isWin, this.state.player.score, accuracy);
         this.state.player.xp += xpGained;
 
-        // التحقق من الترقية للمستوى
+        // التحقق من الترقية
         this.checkLevelUp();
 
         // حفظ بيانات اللاعب
         this.savePlayerData();
-
-        // عرض الإنجازات
-        this.showAchievements(isWin);
-
-        // عرض أفضل النتائج
-        this.showLeaderboard();
 
         // تبديل الشاشة
         this.switchScreen('results');
@@ -954,434 +850,198 @@ class MillionaireGame {
             }
         }
 
-        // إشعار
         this.showNotification(
-            isWin ? '🎉 مبروك على الفوز!' : '💪 حاول مرة أخرى، أنت تستطيع!',
+            isWin ? 'إنجاز رائع! شاهد نتائجك' : 'حاول مرة أخرى، أنت تستطيع!',
             isWin ? 'success' : 'info'
         );
     }
 
-    // ==== حساب نقاط الخبرة ====
+    // حساب نقاط الخبرة
     calculateXP(isWin, score, accuracy) {
         let xp = Math.floor(score / 100);
-        xp += isWin ? 500 : 100;
-        xp += Math.floor(accuracy);
+        xp += isWin ? 50 : 10;
+        xp += Math.floor(accuracy / 10);
         return xp;
     }
 
-    // ==== التحقق من الترقية ====
+    // التحقق من الترقية
     checkLevelUp() {
         while (this.state.player.xp >= this.state.player.xpToNext) {
             this.state.player.xp -= this.state.player.xpToNext;
             this.state.player.level++;
             this.state.player.xpToNext = Math.floor(this.state.player.xpToNext * 1.5);
 
-            this.showNotification(`🎉 ترقية! المستوى ${this.state.player.level}`, 'success');
+            this.showNotification(`مبروك! لقد وصلت للمستوى ${this.state.player.level}`, 'success');
         }
 
         this.updatePlayerInfo();
     }
 
-    // ==== تحديث معلومات اللاعب ====
+    // تحديث معلومات اللاعب
     updatePlayerInfo() {
         this.elements.player.currentName.textContent = this.state.player.name;
         this.elements.player.currentAvatar.textContent = this.state.player.avatar;
-        this.elements.player.level.textContent = `المستوى ${this.state.player.level}`;
+        this.elements.player.level.textContent = `مستوى ${this.state.player.level}`;
 
         const xpPercentage = (this.state.player.xp / this.state.player.xpToNext) * 100;
         this.elements.player.xpProgress.style.width = xpPercentage + '%';
     }
 
-    // ==== تحديث معلومات اللعبة ====
+    // تحديث معلومات اللعبة
     updateGameInfo() {
         this.elements.gameInfo.currentScore.textContent = this.state.player.score.toLocaleString();
         this.elements.gameInfo.streakCount.textContent = this.state.player.streak;
-        this.elements.gameInfo.currentCategory.textContent = this.state.currentCategory;
+        this.elements.gameInfo.currentCategory.textContent = this.state.game.currentCategory;
         this.elements.gameInfo.currentDifficulty.textContent =
-            this.state.currentDifficulty === 'easy' ? 'سهل' :
-            this.state.currentDifficulty === 'medium' ? 'متوسط' : 'صعب';
+            this.config.difficulty === 'easy' ? 'سهل' :
+            this.config.difficulty === 'medium' ? 'متوسط' : 'صعب';
     }
 
-    // ==== تحديث شريط التقدم ====
-    updateProgressBar() {
-        const progress = ((this.state.game.currentQuestion) / this.config.maxQuestions) * 100;
-        this.elements.gameInfo.gameProgress.style.width = progress + '%';
-    }
-
-    // ==== تحديث إحصائيات اللاعب ====
-    updatePlayerStats(isCorrect) {
-        // تحديث متوسط الوقت
-        const totalQuestions = this.state.game.currentQuestion + 1;
-        this.state.player.stats.avgTime = Math.floor(this.state.game.totalTime / totalQuestions);
-    }
-
-    // ==== عرض الإنجازات ====
-    showAchievements(isWin) {
-        if (!this.elements.results.achievementsContainer) return;
-
-        const achievements = [
-            { 
-                id: 'first_game', 
-                name: 'اللعبة الأولى', 
-                desc: 'إكمال لعبة كاملة', 
-                icon: '🎮', 
-                unlocked: true 
-            },
-            { 
-                id: 'perfect_game', 
-                name: 'الكمال', 
-                desc: 'الإجابة على جميع الأسئلة بشكل صحيح', 
-                icon: '⭐', 
-                unlocked: isWin && this.state.game.correctAnswers === this.config.maxQuestions 
-            },
-            { 
-                id: 'millionaire', 
-                name: 'المليونير', 
-                desc: 'الفوز بمليون دينار', 
-                icon: '💰', 
-                unlocked: isWin && this.state.player.score === 1000000 
-            },
-            { 
-                id: 'speed_demon', 
-                name: 'السرعة البرقية', 
-                desc: 'متوسط وقت إجابة أقل من 10 ثواني', 
-                icon: '⚡', 
-                unlocked: this.state.game.totalTime / (this.state.game.currentQuestion + 1) < 10 
-            }
-        ];
-
-        this.elements.results.achievementsContainer.innerHTML = '';
-
-        achievements.forEach(achievement => {
-            if (achievement.unlocked) {
-                const div = document.createElement('div');
-                div.className = 'achievement unlocked';
-                div.innerHTML = `
-                    <div class="achievement-icon">${achievement.icon}</div>
-                    <div class="achievement-name">${achievement.name}</div>
-                    <div class="achievement-desc">${achievement.desc}</div>
-                `;
-                this.elements.results.achievementsContainer.appendChild(div);
-            }
-        });
-    }
-
-    // ==== عرض أفضل النتائج ====
-    showLeaderboard() {
-        if (!this.elements.results.leaderboard) return;
-
-        const leaderboardData = JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]');
-
-        // إضافة النتيجة الحالية
-        const currentScore = {
-            name: this.state.player.name,
-            score: this.state.player.score,
-            date: new Date().toLocaleDateString('ar-SA'),
-            level: this.state.player.level
-        };
-
-        leaderboardData.push(currentScore);
-
-        // ترتيب من الأعلى للأدنى
-        leaderboardData.sort((a, b) => b.score - a.score);
-
-        // أخذ أفضل 10 نتائج فقط
-        const top10 = leaderboardData.slice(0, 10);
-        localStorage.setItem('millionaire_leaderboard', JSON.stringify(top10));
-
-        this.elements.results.leaderboard.innerHTML = '';
-
-        top10.forEach((player, index) => {
-            const isCurrent = player.name === this.state.player.name && player.score === this.state.player.score;
-
-            const item = document.createElement('div');
-            item.className = `leaderboard-item ${isCurrent ? 'current' : ''}`;
-            item.innerHTML = `
-                <div class="leaderboard-rank">${index + 1}</div>
-                <div class="leaderboard-name">${player.name}</div>
-                <div class="leaderboard-score">${player.score.toLocaleString()}</div>
-            `;
-            this.elements.results.leaderboard.appendChild(item);
-        });
-    }
-
-    // ==== الخروج من اللعبة ====
-    quitGame() {
-        if (confirm('هل تريد الانسحاب والحصول على المبلغ الحالي؟')) {
-            this.endGame(false);
-        }
-    }
-
-    // ==== إعادة تشغيل اللعبة ====
-    restartGame() {
-        this.switchScreen('start');
-        this.updateCategories();
-        this.updatePlayerInfo();
-        this.showNotification('🔄 استعد للجولة القادمة!', 'info');
-    }
-
-    // ==== العودة للقائمة الرئيسية ====
-    goToMainMenu() {
-        this.switchScreen('start');
-        this.showNotification('🏠 العودة للقائمة الرئيسية', 'info');
-    }
-
-    // ==== مشاركة النتائج ====
-    shareResults() {
-        const shareText = `🎮 ربحت ${this.state.player.score.toLocaleString()} دينار في لعبة "من سريع المليون"!\n${window.location.href}`;
-
-        if (navigator.share) {
-            navigator.share({
-                title: "نتيجتي في لعبة من سريع المليون",
-                text: shareText,
-                url: window.location.href
-            });
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                this.showNotification('✅ تم نسخ النتيجة إلى الحافظة', 'success');
-            });
-        }
-    }
-
-    // ==== تبديل الشاشات ====
+    // تبديل الشاشات
     switchScreen(screenName) {
         Object.values(this.elements.screens).forEach(screen => {
             screen.classList.remove('active');
         });
-        
+
         this.elements.screens[screenName].classList.add('active');
         this.state.screen = screenName;
     }
 
-    // ==== تشغيل الصوت ====
+    // تشغيل الصوت
     playSound(type) {
         if (!this.state.settings.sound) return;
 
         const sound = this.elements.sounds[type];
         if (sound) {
             sound.currentTime = 0;
-            sound.play().catch(e => console.log('❌ خطأ في تشغيل الصوت:', e));
+            sound.play().catch(e => console.log('خطأ في تشغيل الصوت:', e));
         }
     }
 
-    // ==== تبديل الصوت ====
+    // تبديل الصوت
     toggleSound() {
         this.state.settings.sound = !this.state.settings.sound;
-        this.elements.settings.sound.checked = this.state.settings.sound;
-        this.saveSettings();
-
         const icon = this.elements.navBtns.sound.querySelector('i');
         icon.className = this.state.settings.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
 
-        this.showNotification(
-            this.state.settings.sound ? '🔊 تم تشغيل الصوت' : '🔇 تم إيقاف الصوت',
-            'info'
-        );
+        this.saveSettings();
+        this.showNotification(this.state.settings.sound ? 'تم تشغيل الصوت' : 'تم إيقاف الصوت', 'info');
     }
 
-    // ==== عرض الإحصائيات ====
+    // عرض الإحصائيات
     showStats() {
         const stats = this.state.player.stats;
-        const winRate = stats.gamesPlayed > 0 ?
+        const winRate = stats.gamesPlayed > 0 ? 
             Math.floor((stats.totalCorrect / stats.totalQuestions) * 100) : 0;
 
-        this.showModal('📊 إحصائيات اللاعب', `
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-icon">🎮</div>
-                    <div class="stat-value">${stats.gamesPlayed}</div>
-                    <div class="stat-label">عدد الألعاب</div>
+        const content = `
+            <div class="stats-popup">
+                <h3><i class="fas fa-chart-line"></i> إحصائيات اللاعب</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">🎮</div>
+                        <div class="stat-value">${stats.gamesPlayed}</div>
+                        <div class="stat-label">عدد الألعاب</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-value">${stats.totalCorrect}</div>
+                        <div class="stat-label">إجابات صحيحة</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">${stats.totalMoney.toLocaleString()}</div>
+                        <div class="stat-label">مجموع الأرباح</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-value">${stats.bestScore.toLocaleString()}</div>
+                        <div class="stat-label">أفضل نتيجة</div>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-value">${stats.totalCorrect}</div>
-                    <div class="stat-label">إجابات صحيحة</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-value">${stats.totalMoney.toLocaleString()}</div>
-                    <div class="stat-label">دينار مكتسب</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-icon">🏆</div>
-                    <div class="stat-value">${stats.bestScore.toLocaleString()}</div>
-                    <div class="stat-label">أفضل نتيجة</div>
+                <div class="advanced-stats">
+                    <h4>إحصائيات متقدمة</h4>
+                    <p>معدل الفوز: ${winRate}%</p>
+                    <p>متوسط وقت الإجابة: ${stats.avgTime || 0} ثانية</p>
+                    <p>الدقة العامة: ${stats.totalQuestions > 0 ? Math.floor((stats.totalCorrect / stats.totalQuestions) * 100) : 0}%</p>
                 </div>
             </div>
-            <div class="advanced-stats">
-                <h4>إحصائيات متقدمة</h4>
-                <p>📈 معدل الفوز: ${winRate}%</p>
-                <p>⏱️ متوسط وقت الإجابة: ${stats.avgTime || 0} ثانية</p>
-                <p>🎯 الدقة العامة: ${stats.totalQuestions > 0 ? Math.floor((stats.totalCorrect / stats.totalQuestions) * 100) : 0}%</p>
-            </div>
-        `);
+        `;
+
+        this.showModal('إحصائيات اللاعب', content);
     }
 
-    // ==== عرض التعليمات ====
+    // عرض التعليمات
     showHelp() {
-        this.showModal('❓ تعليمات اللعبة', `
+        const content = `
             <div class="help-content">
-                <h3>🎮 كيفية اللعب</h3>
+                <h3><i class="fas fa-graduation-cap"></i> كيفية اللعب</h3>
                 <ol>
-                    <li>اختر فئة الأسئلة (ثقافة، تاريخ، جغرافيا، إلخ)</li>
-                    <li>اختر مستوى الصعوبة (سهل، متوسط، صعب)</li>
-                    <li>اختر إعدادات المؤقت (مع أو بدون مؤقت)</li>
-                    <li>اختر خلفية اللعبة المناسبة</li>
-                    <li>أدخل اسمك واختر صورتك الرمزية</li>
+                    <li>اختر اسمك وصورتك الرمزية</li>
+                    <li>اختر فئة الأسئلة المفضلة لديك</li>
+                    <li>اختر مستوى الصعوبة المناسب</li>
+                    <li>حدد إذا كنت تريد مؤقت أم لا</li>
                     <li>اضغط على "بدء اللعبة"</li>
+                    <li>اختر الإجابة الصحيحة قبل انتهاء الوقت</li>
+                    <li>استخدم أدوات المساعدة بحكمة</li>
+                    <li>احصل على أكبر قدر من المال!</li>
                 </ol>
                 
-                <h3>⚡ أثناء اللعبة</h3>
-                <ul>
-                    <li>لكل سؤال 4 إجابات محتملة</li>
-                    <li>اختر الإجابة الصحيحة قبل انتهاء الوقت</li>
-                    <li>استخدم أدوات المساعدة بحكمة (4 أدوات)</li>
-                    <li>يمكنك الانسحاب في أي وقت والحصول على المبلغ الحالي</li>
-                </ul>
+                <h4>نظام الجوائز</h4>
+                <p>10 أسئلة مع جوائز متزايدة تصل إلى 32,000 دينار</p>
                 
-                <h3>💰 نظام الجوائز</h3>
-                <ul>
-                    <li>15 سؤال مع جوائز متزايدة</li>
-                    <li>1,000 - 32,000 - 1,000,000 دينار</li>
-                    <li>مستويات آمنة عند 1,000 و32,000 دينار</li>
-                </ul>
-                
-                <h3>🏆 نظام الإنجازات</h3>
-                <p>اكسب نقاط خبرة وارتفع في المستويات، واحصل على إنجازات خاصة!</p>
+                <h4>نظام الإنجازات</h4>
+                <p>اكسب نقاط خبرة وارتفع في المستويات</p>
             </div>
-        `);
+        `;
+
+        this.showModal('تعليمات اللعبة', content);
     }
 
-    // ==== عرض التعليمات التفصيلية ====
-    showTutorial() {
-        this.showModal('🎓 دليل اللاعب المتقدم', `
-            <div class="tutorial-content">
-                <h3>🚀 نصائح احترافية:</h3>
-                
-                <div class="tip-card">
-                    <h4>📚 إدارة المعرفة:</h4>
-                    <p>ركز على الفئات التي تجيدها، ولكن لا تهمل المجالات الأخرى.</p>
-                </div>
-                
-                <div class="tip-card">
-                    <h4>⏱️ إدارة الوقت:</h4>
-                    <p>لا تستعجل في الإجابة الأولى، ولكن لا تضيع الوقت أيضاً.</p>
-                </div>
-                
-                <div class="tip-card">
-                    <h4>🛠️ استخدام أدوات المساعدة:</h4>
-                    <p>احفظ أدوات المساعدة للأسئلة الصعبة والقرارات الحرجة.</p>
-                </div>
-                
-                <div class="tip-card">
-                    <h4>💰 استراتيجية الجوائز:</h4>
-                    <p>ضع أهدافاً واقعية: 1,000 - 32,000 - 1,000,000 دينار.</p>
-                </div>
-                
-                <h3>🎯 مستويات الصعوبة:</h3>
-                <ul>
-                    <li><strong>سهل:</strong> الوقت: 45 ثانية، أدوات مساعدة: 4</li>
-                    <li><strong>متوسط:</strong> الوقت: 30 ثانية، أدوات مساعدة: 3</li>
-                    <li><strong>صعب:</strong> الوقت: 20 ثانية، أدوات مساعدة: 2</li>
-                </ul>
-                
-                <h3>⚙️ إعدادات المؤقت:</h3>
-                <ul>
-                    <li><strong>مع مؤقت:</strong> مناسب للتحدي والسرعة</li>
-                    <li><strong>بدون مؤقت:</strong> مناسب للتعلم والتفكير العميق</li>
-                </ul>
-                
-                <p>💡 تذكر: كلما لعبت أكثر، زادت نقاط خبرتك وارتفع مستواك!</p>
+    // عرض نافذة
+    showModal(title, content) {
+        // إنشاء عناصر النافذة
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-header">
+                <h3>${title}</h3>
+                <button class="modal-close">&times;</button>
             </div>
-        `);
-    }
+            <div class="modal-body">${content}</div>
+        `;
 
-    // ==== عرض لوحة التحكم ====
-    showAdminPanel() {
-        this.showModal('⚙️ لوحة التحكم', `
-            <div class="admin-panel">
-                <h3>🛠️ الإدارة المتقدمة</h3>
-                <div class="admin-actions">
-                    <button class="btn primary" onclick="game.resetAllData()">
-                        <i class="fas fa-trash"></i> مسح جميع البيانات
-                    </button>
-                    <button class="btn secondary" onclick="game.exportData()">
-                        <i class="fas fa-download"></i> تصدير البيانات
-                    </button>
-                    <button class="btn outline" onclick="game.importData()">
-                        <i class="fas fa-upload"></i> استيراد البيانات
-                    </button>
-                </div>
-                <div class="system-info">
-                    <h4>معلومات النظام</h4>
-                    <p>الإصدار: ${this.config.version}</p>
-                    <p>إجمالي الأسئلة: ${window.questionBank.getTotalQuestions()}</p>
-                    <p>اللاعبون المسجلون: ${JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]').length}</p>
-                    <p>أعلى نتيجة: ${Math.max(...JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]').map(p => p.score || 0)).toLocaleString()} دينار</p>
-                </div>
-            </div>
-        `);
-    }
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
 
-    // ==== مسح جميع البيانات ====
-    resetAllData() {
-        if (confirm('⚠️ هل أنت متأكد من حذف جميع الإحصائيات والنتائج؟')) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
+        // إظهار النافذة
+        setTimeout(() => overlay.classList.add('active'), 10);
 
-    // ==== تصدير البيانات ====
-    exportData() {
-        const data = {
-            player: this.state.player,
-            settings: this.state.settings,
-            leaderboard: JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]')
+        // إغلاق النافذة
+        const closeBtn = modal.querySelector('.modal-close');
+        closeBtn.onclick = () => {
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.remove(), 300);
+            if (this.state.settings.sound) {
+                this.playSound('click');
+            }
         };
 
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `millionaire_data_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-
-        this.showNotification('✅ تم تصدير البيانات بنجاح', 'success');
-    }
-
-    // ==== استيراد البيانات ====
-    importData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-
-        input.onchange = (e) => {
-            const file = e.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (data.player) this.state.player = { ...this.state.player, ...data.player };
-                    if (data.settings) this.state.settings = { ...this.state.settings, ...data.settings };
-                    if (data.leaderboard) localStorage.setItem('millionaire_leaderboard', JSON.stringify(data.leaderboard));
-                    
-                    this.saveSettings();
-                    this.savePlayerData();
-                    this.updatePlayerInfo();
-
-                    this.showNotification('✅ تم استيراد البيانات بنجاح', 'success');
-                } catch (error) {
-                    this.showNotification('❌ ملف غير صالح', 'error');
+        overlay.onclick = (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                setTimeout(() => overlay.remove(), 300);
+                if (this.state.settings.sound) {
+                    this.playSound('click');
                 }
-            };
-            reader.readAsText(file);
+            }
         };
-
-        input.click();
     }
 
-    // ==== عرض الإشعار ====
+    // إظهار إشعار
     showNotification(message, type = 'info') {
         const container = document.getElementById('notification-container');
         if (!container) return;
@@ -1399,39 +1059,95 @@ class MillionaireGame {
 
         // إزالة الإشعار بعد 5 ثواني
         setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(100%)';
             setTimeout(() => notification.remove(), 300);
         }, 5000);
     }
 
-    // ==== عرض النافذة المنبثقة ====
-    showModal(title, content) {
-        this.elements.modal.title.textContent = title;
-        this.elements.modal.body.innerHTML = content;
-        this.elements.modal.overlay.classList.add('active');
-        
-        if (this.state.settings.sound) {
-            this.playSound('click');
+    // الخروج من اللعبة
+    quitGame() {
+        if (confirm('هل تريد الانسحاب والحصول على المبلغ الحالي؟')) {
+            this.endGame(false);
         }
     }
 
-    // ==== إخفاء النافذة المنبثقة ====
-    hideModal() {
-        this.elements.modal.overlay.classList.remove('active');
-        if (this.state.settings.sound) {
-            this.playSound('click');
+    // إعادة تشغيل اللعبة
+    restartGame() {
+        this.switchScreen('start');
+        this.loadCategories();
+        this.updatePlayerInfo();
+        this.showNotification('استعد للجولة القادمة!', 'info');
+    }
+
+    // العودة للقائمة الرئيسية
+    goToMainMenu() {
+        this.switchScreen('start');
+        this.showNotification('العودة للقائمة الرئيسية', 'info');
+    }
+
+    // مشاركة النتائج
+    shareResults() {
+        const shareText = `💰 ربحت ${this.state.player.score.toLocaleString()} دينار في لعبة من سيربح المليون!`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: "نتيجتي في لعبة من سيربح المليون",
+                text: shareText,
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(shareText).then(() => {
+                this.showNotification('تم نسخ النتيجة إلى الحافظة', 'success');
+            }).catch(() => {
+                alert(shareText);
+            });
+        }
+    }
+
+    // تحميل الإعدادات
+    loadSettings() {
+        const saved = localStorage.getItem('millionaire_settings');
+        if (saved) {
+            try {
+                const settings = JSON.parse(saved);
+                Object.assign(this.state.settings, settings);
+                
+                // تحديث زر الصوت
+                const icon = this.elements.navBtns.sound.querySelector('i');
+                if (icon) {
+                    icon.className = this.state.settings.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+                }
+            } catch (e) {
+                console.log('خطأ في تحميل الإعدادات:', e);
+            }
+        }
+    }
+
+    // حفظ الإعدادات
+    saveSettings() {
+        try {
+            localStorage.setItem('millionaire_settings', JSON.stringify(this.state.settings));
+        } catch (e) {
+            console.log('خطأ في حفظ الإعدادات:', e);
+        }
+    }
+
+    // حفظ بيانات اللاعب
+    savePlayerData() {
+        try {
+            localStorage.setItem('millionaire_player', JSON.stringify(this.state.player));
+        } catch (e) {
+            console.log('خطأ في حفظ بيانات اللاعب:', e);
         }
     }
 }
 
-// ==== تهيئة اللعبة عند تحميل الصفحة ====
+// ===== تهيئة اللعبة عند تحميل الصفحة =====
 let game;
 
 document.addEventListener('DOMContentLoaded', function() {
     game = new MillionaireGame();
     window.game = game;
-
-    console.log('🎮 من سريع المليون 2.1 - الإصدار المحترف');
-    console.log('✅ تم تهيئة النظام بنجاح');
-    console.log('🚀 جاهز للعب!');
+    console.log('من سيربح المليون - نسخة الهاتف جاهزة!');
 });
