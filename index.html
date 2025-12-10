@@ -3,68 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#667eea">
-    <title>من سريع المليون - العبة العربية للفوز بالمليون</title>
+    <title>من سريع المليون</title>
     
-    <!-- Fonts -->
+    <!-- الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Icons -->
+    <!-- الأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Styles -->
+    <!-- التنسيقات -->
+    <style>
+        /* تنسيقات الطوارئ إذا الـCSS مش شغال */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #2d3436;
+            min-height: 100vh;
+            direction: rtl;
+            padding: 20px;
+        }
+        
+        .app-container {
+            background: white;
+            border-radius: 20px;
+            min-height: 90vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .debug-info {
+            background: #ff4757;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+    
+    <!-- ملف التنسيقات الرئيسي -->
     <link rel="stylesheet" href="style.css">
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-    
-    <style>
-        /* Loading Animation */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
-        
-        .loader {
-            width: 80px;
-            height: 80px;
-            border: 6px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #FFD700;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="loading-screen">
-        <div class="loader"></div>
+    <!-- معلومات التصحيح -->
+    <div class="debug-info" id="debug-info">
+        ⚡ جاري تحميل اللعبة...
     </div>
     
-    <!-- Main App -->
+    <!-- شاشة التحميل -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <p style="color: white; margin-top: 20px;">جاري تحميل اللعبة...</p>
+    </div>
+    
+    <!-- التطبيق الرئيسي -->
     <div id="app" class="app-container">
-        <!-- Header -->
+        <!-- الهيدر -->
         <header class="game-header">
             <div class="header-content">
                 <div class="logo">
@@ -73,15 +77,15 @@
                 </div>
                 
                 <div class="header-controls">
-                    <button id="sound-toggle" class="control-btn" title="تشغيل/إيقاف الصوت">
+                    <button id="sound-toggle" class="control-btn">
                         <i class="fas fa-volume-up"></i>
                     </button>
                     
-                    <button id="stats-btn" class="control-btn" title="الإحصائيات">
+                    <button id="stats-btn" class="control-btn">
                         <i class="fas fa-chart-bar"></i>
                     </button>
                     
-                    <div id="premium-badge" class="premium-badge hidden">
+                    <div id="premium-badge" class="premium-badge" style="display: none;">
                         <i class="fas fa-crown"></i>
                         <span>مميز</span>
                     </div>
@@ -89,12 +93,35 @@
             </div>
         </header>
         
-        <!-- Main Content -->
+        <!-- المحتوى الرئيسي -->
         <main id="main-content">
-            <!-- Screens will be dynamically loaded here -->
+            <!-- شاشة ترحيب بسيطة -->
+            <div id="welcome-screen" style="padding: 40px; text-align: center;">
+                <h2 style="color: #0984e3; margin-bottom: 20px;">🎮 من سريع المليون</h2>
+                <p style="color: #636e72; margin-bottom: 30px;">لعبة المسابقة العربية للفوز بمليون دينار</p>
+                
+                <button id="start-game-test" style="
+                    background: linear-gradient(135deg, #0984e3, #4a69bd);
+                    color: white;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin: 10px;
+                ">
+                    <i class="fas fa-play"></i> ابدأ اللعبة
+                </button>
+                
+                <div style="margin-top: 40px; color: #888; font-size: 14px;">
+                    <p>إذا شايف هالشاشة، الـHTML وCSS شغالين</p>
+                    <p>افتح F12 → Console وشوف إذا في أخطاء</p>
+                </div>
+            </div>
         </main>
         
-        <!-- Navigation -->
+        <!-- التنقل -->
         <nav class="game-nav">
             <button id="home-btn" class="nav-btn active">
                 <i class="fas fa-home"></i>
@@ -118,55 +145,177 @@
         </nav>
     </div>
     
-    <!-- Notification Container -->
+    <!-- الحاويات -->
     <div id="notification-container" class="notification-container"></div>
-    
-    <!-- Modals Container -->
     <div id="modals-container" class="modals-container"></div>
     
-    <!-- Audio Elements -->
-    <audio id="sound-correct" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" type="audio/mpeg">
-    </audio>
+    <!-- الأصوات -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="sound-click" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
+    <audio id="sound-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
     
-    <audio id="sound-wrong" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
-    </audio>
+    <!-- سكريبتات التصحيح -->
+    <script>
+        // دالة تصحيح
+        function debugLog(message, type = 'info') {
+            const colors = {
+                info: '#0984e3',
+                success: '#00b894',
+                error: '#e17055',
+                warning: '#fdcb6e'
+            };
+            
+            console.log(`%c${message}`, `color: ${colors[type]}; font-weight: bold;`);
+            document.getElementById('debug-info').innerHTML = `⚡ ${message}`;
+            document.getElementById('debug-info').style.background = colors[type];
+        }
+        
+        // تحقق من تحميل الملفات
+        function checkFileLoaded(filename) {
+            return new Promise((resolve) => {
+                const startTime = Date.now();
+                const checkInterval = setInterval(() => {
+                    if (Date.now() - startTime > 5000) {
+                        clearInterval(checkInterval);
+                        resolve(false);
+                    }
+                    
+                    try {
+                        if (filename === 'style.css') {
+                            const styles = document.styleSheets;
+                            for (let i = 0; i < styles.length; i++) {
+                                if (styles[i].href && styles[i].href.includes(filename)) {
+                                    clearInterval(checkInterval);
+                                    resolve(true);
+                                }
+                            }
+                        } else if (window[filename.replace('.js', '')]) {
+                            clearInterval(checkInterval);
+                            resolve(true);
+                        }
+                    } catch (e) {
+                        // continue
+                    }
+                }, 100);
+            });
+        }
+        
+        // بدء التصحيح
+        async function startDebug() {
+            debugLog('بدء تصحيح اللعبة...', 'info');
+            
+            // تحقق من CSS
+            const cssLoaded = await checkFileLoaded('style.css');
+            if (cssLoaded) {
+                debugLog('✅ ملف التنسيقات محمل', 'success');
+            } else {
+                debugLog('❌ ملف التنسيقات غير محمل', 'error');
+                // تحميل CSS احتياطي
+                const backupCSS = `
+                    <style>
+                        /* تنسيقات احتياطية */
+                        .game-header { background: #2d3436; color: white; padding: 15px; }
+                        .game-nav { background: #f8f9fa; display: flex; padding: 10px; }
+                        .nav-btn { flex: 1; text-align: center; padding: 10px; }
+                    </style>
+                `;
+                document.head.insertAdjacentHTML('beforeend', backupCSS);
+            }
+            
+            // تحميل السكريبتات تدريجياً
+            const scripts = [
+                'config.js',
+                'security.js', 
+                'question-bank.js',
+                'subscription.js',
+                'script.js'
+            ];
+            
+            for (let i = 0; i < scripts.length; i++) {
+                try {
+                    const script = document.createElement('script');
+                    script.src = scripts[i];
+                    script.onload = () => debugLog(`✅ ${scripts[i]} محمل`, 'success');
+                    script.onerror = () => debugLog(`❌ ${scripts[i]} فشل التحميل`, 'error');
+                    document.head.appendChild(script);
+                    
+                    // انتظر قليلاً بين كل سكريبت
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    debugLog(`خطأ في ${scripts[i]}: ${error.message}`, 'error');
+                }
+            }
+            
+            // بدء اللعبة بعد تحميل كل شيء
+            setTimeout(() => {
+                if (window.MillionaireGame) {
+                    try {
+                        window.game = new MillionaireGame();
+                        debugLog('🎮 اللعبة بدأت بنجاح!', 'success');
+                        
+                        // إخفاء شاشة التحميل
+                        document.getElementById('loading-screen').style.display = 'none';
+                        document.getElementById('debug-info').style.display = 'none';
+                        
+                    } catch (error) {
+                        debugLog(`خطأ في بدء اللعبة: ${error.message}`, 'error');
+                        showErrorScreen(error);
+                    }
+                } else {
+                    debugLog('❌ محرك اللعبة غير محمل', 'error');
+                    showErrorScreen(new Error('محرك اللعبة غير محمل'));
+                }
+            }, 3000);
+        }
+        
+        // عرض شاشة الخطأ
+        function showErrorScreen(error) {
+            document.getElementById('main-content').innerHTML = `
+                <div style="padding: 40px; text-align: center;">
+                    <h2 style="color: #e17055;">❌ حدث خطأ</h2>
+                    <p style="color: #636e72; margin: 20px 0;">${error.message}</p>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; text-align: right;">
+                        <h4>خطوات الحل:</h4>
+                        <ol style="margin: 10px 0; padding-right: 20px;">
+                            <li>افتح F12 → Console</li>
+                            <li>شوف الأخطاء يلي بتحكي عنها</li>
+                            <li>تأكد إنو كل الملفات موجودة</li>
+                            <li>جرب تفتح الصفحة على متصفح تاني</li>
+                        </ol>
+                    </div>
+                    <button onclick="location.reload()" style="
+                        background: #0984e3;
+                        color: white;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        margin-top: 20px;
+                        cursor: pointer;
+                    ">
+                        <i class="fas fa-redo"></i> إعادة تحميل
+                    </button>
+                </div>
+            `;
+        }
+        
+        // بدء عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            debugLog('الصفحة محملة، بدء التصحيح...', 'info');
+            startDebug();
+        });
+        
+        // زر الاختبار
+        document.getElementById('start-game-test')?.addEventListener('click', () => {
+            alert('JavaScript شغال! إذا اللعبة ما اشتغلت، شوف Console');
+        });
+    </script>
     
-    <audio id="sound-click" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" type="audio/mpeg">
-    </audio>
-    
-    <audio id="sound-win" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
-    </audio>
-    
-    <!-- Scripts -->
+    <!-- تحميل الملفات الأساسية -->
     <script src="config.js"></script>
     <script src="security.js"></script>
     <script src="question-bank.js"></script>
     <script src="subscription.js"></script>
     <script src="script.js"></script>
-    
-    <script>
-        // Hide loading screen when page loads
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loading-screen').remove();
-                }, 500);
-            }, 1000);
-        });
-        
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => {
-                    console.log('Service Worker registration failed: ', err);
-                });
-            });
-        }
-    </script>
 </body>
 </html>
