@@ -1,22 +1,20 @@
 {
-  "name": "millionaire-game",
+  "name": "من سريع المليون",
   "version": "2.0.0",
-  "description": "لعبة من سيربح المليون النسخة الاحترافية",
+  "description": "لعبة ثقافية تفاعلية لاختبار المعلومات والفوز بالمليون",
   "main": "index.html",
   "scripts": {
     "start": "npx http-server .",
-    "build": "echo 'بناء اللعبة...'",
-    "deploy": "echo 'نشر اللعبة...'"
+    "build": "echo 'بناء المشروع...'",
+    "deploy": "echo 'نشر المشروع...'"
   },
   "keywords": [
-    "game",
-    "quiz",
-    "millionaire",
-    "arabic",
-    "education"
+    "لعبة",
+    "مسابقة",
+    "مليونير",
+    "عربي",
+    "تعليم"
   ],
-  "author": "Your Name",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "author": "فريق التطوير",
+  "license": "MIT"
 }
