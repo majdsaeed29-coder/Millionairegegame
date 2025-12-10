@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>من سيربح المليون - النسخة الاحترافية</title>
+    <title>من سريع المليون - اللعبة الثقافية</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
 </head>
 <body>
-    <!-- الشاشة الرئيسية -->
     <div class="app-container">
         <!-- شريط التنقل -->
         <nav class="game-nav">
@@ -25,7 +24,7 @@
             <div class="nav-center">
                 <h1 class="game-title">
                     <i class="fas fa-crown"></i>
-                    من سيربح المليون
+                    من سريع المليون
                     <span class="version">PRO</span>
                 </h1>
             </div>
@@ -39,34 +38,35 @@
             </div>
         </nav>
 
-        <!-- شاشة البداية -->
+        <!-- الشاشة الرئيسية -->
         <section id="start-screen" class="screen active">
             <div class="hero-section">
                 <div class="hero-content">
                     <div class="logo-animation">
                         <div class="money-icon">💰</div>
-                        <div class="title-glow">المليون</div>
+                        <div class="title-glow">من سريع المليون</div>
                     </div>
-                    <p class="tagline">اختبار معرفتك قد يجعل منك مليونيراً!</p>
+                    <p class="tagline">اختبر معلوماتك واربح مليون دينار!</p>
                 </div>
 
-                <!-- خيارات اللاعب -->
+                <!-- إعدادات اللاعب -->
                 <div class="player-setup">
+                    <!-- ملف اللاعب -->
                     <div class="setup-card">
                         <h3><i class="fas fa-user-edit"></i> ملف اللاعب</h3>
                         <div class="input-group">
                             <input type="text" id="player-name" placeholder="اسم اللاعب" maxlength="20" value="المتنافس">
                             <select id="player-avatar" class="avatar-select">
-                                <option value="👨‍💼">👨‍💼 رجل أعمال</option>
-                                <option value="👩‍🔬">👩‍🔬 عالمة</option>
-                                <option value="👨‍🎓">👨‍🎓 طالب</option>
-                                <option value="👩‍💻">👩‍💻 مبرمجة</option>
-                                <option value="🤴">🤴 أمير</option>
+                                <option value="👨‍💼">رجل أعمال</option>
+                                <option value="👩‍💼">سيدة أعمال</option>
+                                <option value="👨‍🎓">طالب</option>
+                                <option value="👩‍🎓">طالبة</option>
+                                <option value="👑">ملك</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- اختيار التصنيف -->
+                    <!-- اختر التصنيف -->
                     <div class="setup-card">
                         <h3><i class="fas fa-tags"></i> اختر التصنيف</h3>
                         <div class="categories-grid" id="categories-container">
@@ -74,45 +74,47 @@
                         </div>
                     </div>
 
-                    <!-- اختيار المستوى -->
+                    <!-- مستوى الصعوبة -->
                     <div class="setup-card">
                         <h3><i class="fas fa-sliders-h"></i> مستوى الصعوبة</h3>
                         <div class="difficulty-selector">
                             <div class="difficulty-option" data-level="easy">
-                                <div class="diff-icon">🌱</div>
+                                <div class="diff-icon">😊</div>
                                 <div class="diff-info">
                                     <h4>سهل</h4>
-                                    <p>مبتدئ - جوائز تصل لـ 100,000</p>
+                                    <p>مبتدئ - جوائز تصل إلى 100,000 دينار</p>
                                     <div class="diff-stats">
                                         <span><i class="fas fa-clock"></i> 45 ثانية</span>
-                                        <span><i class="fas fa-life-ring"></i> 4 مساعدات</span>
+                                        <span><i class="fas fa-life-ring"></i> 4 أدوات مساعدة</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">مبتدئ</div>
+                                <div class="diff-badge">مستوى سهل</div>
                             </div>
+
                             <div class="difficulty-option" data-level="medium">
-                                <div class="diff-icon">⚡</div>
+                                <div class="diff-icon">😐</div>
                                 <div class="diff-info">
                                     <h4>متوسط</h4>
-                                    <p>متقدم - جوائز تصل لـ 500,000</p>
+                                    <p>متوسط - جوائز تصل إلى 500,000 دينار</p>
                                     <div class="diff-stats">
                                         <span><i class="fas fa-clock"></i> 30 ثانية</span>
-                                        <span><i class="fas fa-life-ring"></i> 3 مساعدات</span>
+                                        <span><i class="fas fa-life-ring"></i> 3 أدوات مساعدة</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">متقدم</div>
+                                <div class="diff-badge">مستوى متوسط</div>
                             </div>
+
                             <div class="difficulty-option" data-level="hard">
-                                <div class="diff-icon">🔥</div>
+                                <div class="diff-icon">😰</div>
                                 <div class="diff-info">
                                     <h4>صعب</h4>
-                                    <p>خبير - جوائز تصل لـ 1,000,000</p>
+                                    <p>محترف - جوائز تصل إلى 1,000,000 دينار</p>
                                     <div class="diff-stats">
                                         <span><i class="fas fa-clock"></i> 20 ثانية</span>
-                                        <span><i class="fas fa-life-ring"></i> 2 مساعدات</span>
+                                        <span><i class="fas fa-life-ring"></i> 2 أدوات مساعدة</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">خبير</div>
+                                <div class="diff-badge">مستوى صعب</div>
                             </div>
                         </div>
                     </div>
@@ -128,11 +130,11 @@
                                     <i class="fas fa-stopwatch"></i>
                                     <div>
                                         <h4>مع مؤقت</h4>
-                                        <p>30 ثانية لكل سؤال - تحدي حقيقي!</p>
+                                        <p>تحدي حقيقي مع ضغط الوقت</p>
                                     </div>
                                 </div>
                             </label>
-                            
+
                             <label class="timer-option" data-timer="false">
                                 <input type="radio" name="timer" value="off">
                                 <div class="timer-checkbox"></div>
@@ -147,144 +149,59 @@
                         </div>
                     </div>
 
-                    <!-- اختيار أنواع الأسئلة (متعدد) -->
-                    <div class="setup-card">
-                        <h3><i class="fas fa-layer-group"></i> اختيار أنواع الأسئلة</h3>
-                        <p class="subtitle">يمكنك اختيار أكثر من نوع</p>
-                        
-                        <div class="question-types">
-                            <label class="type-option selected" data-type="ثقافة">
-                                <input type="checkbox" name="questionType" value="ثقافة" checked>
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">🎨</div>
-                                <div class="type-name">ثقافة</div>
-                                <div class="type-count" id="count-ثقافة">150 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option selected" data-type="رياضة">
-                                <input type="checkbox" name="questionType" value="رياضة" checked>
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">⚽</div>
-                                <div class="type-name">رياضة</div>
-                                <div class="type-count" id="count-رياضة">120 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option selected" data-type="تاريخ">
-                                <input type="checkbox" name="questionType" value="تاريخ" checked>
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">📜</div>
-                                <div class="type-name">تاريخ</div>
-                                <div class="type-count" id="count-تاريخ">130 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option selected" data-type="جغرافيا">
-                                <input type="checkbox" name="questionType" value="جغرافيا" checked>
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">🌍</div>
-                                <div class="type-name">جغرافيا</div>
-                                <div class="type-count" id="count-جغرافيا">110 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option selected" data-type="علوم">
-                                <input type="checkbox" name="questionType" value="علوم" checked>
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">🔬</div>
-                                <div class="type-name">علوم</div>
-                                <div class="type-count" id="count-علوم">100 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option" data-type="أطفال">
-                                <input type="checkbox" name="questionType" value="أطفال">
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">🧸</div>
-                                <div class="type-name">أطفال</div>
-                                <div class="type-count" id="count-أطفال">80 سؤال</div>
-                            </label>
-                            
-                            <label class="type-option" data-type="سياسة">
-                                <input type="checkbox" name="questionType" value="سياسة">
-                                <div class="type-checkbox"></div>
-                                <div class="type-icon">🏛️</div>
-                                <div class="type-name">سياسة</div>
-                                <div class="type-count" id="count-سياسة">90 سؤال</div>
-                            </label>
-                        </div>
-                        
-                        <div class="type-actions">
-                            <button class="btn small" id="select-all-types">اختيار الكل</button>
-                            <button class="btn small" id="deselect-all-types">إلغاء الكل</button>
-                        </div>
-                    </div>
-
                     <!-- خلفية اللعبة -->
                     <div class="setup-card">
-                        <h3><i class="fas fa-image"></i> خلفية اللعبة</h3>
-                        <div class="background-options" id="background-options">
-                            <div class="bg-option selected" data-bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" data-type="gradient">
+                        <h3><i class="fas fa-palette"></i> خلفية اللعبة</h3>
+                        <div class="background-options">
+                            <div class="bg-option selected" data-bg="blue" data-type="color">
                                 <div class="bg-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
                                 <div class="bg-name">تدرج أزرق</div>
                             </div>
-                            <div class="bg-option" data-bg="linear-gradient(135deg, #f6d365 0%, #fda085 100%)" data-type="gradient">
+                            <div class="bg-option" data-bg="gold" data-type="color">
                                 <div class="bg-preview" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%)"></div>
                                 <div class="bg-name">تدرج ذهبي</div>
                             </div>
-                            <div class="bg-option" data-bg="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" data-type="gradient">
+                            <div class="bg-option" data-bg="green" data-type="color">
                                 <div class="bg-preview" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
                                 <div class="bg-name">تدرج أخضر</div>
                             </div>
                         </div>
-                        
-                        <div class="custom-bg-input">
-                            <input type="file" id="custom-bg-file" accept="image/*">
-                            <label for="custom-bg-file" class="custom-bg-label">
-                                <i class="fas fa-upload"></i> رفع صورة خاصة
-                            </label>
-                            <img id="bg-preview" alt="معاينة الصورة" style="display: none;">
-                            <button class="btn small" id="random-bg-btn">
-                                <i class="fas fa-random"></i> خلفية عشوائية
-                            </button>
-                        </div>
                     </div>
 
-                    <!-- خيارات إضافية -->
+                    <!-- إعدادات اللعب -->
                     <div class="setup-card">
                         <h3><i class="fas fa-gamepad"></i> إعدادات اللعب</h3>
                         <div class="game-settings">
                             <label class="setting-item">
                                 <input type="checkbox" id="sound-enabled" checked>
                                 <span class="checkmark"></span>
-                                <span class="setting-text">تشغيل الأصوات والتأثيرات</span>
-                            </label>
-                            <label class="setting-item">
-                                <input type="checkbox" id="vibration-enabled" checked>
-                                <span class="checkmark"></span>
-                                <span class="setting-text">اهتزاز عند الإجابات</span>
+                                <span class="setting-text">تشغيل الأصوات</span>
                             </label>
                             <label class="setting-item">
                                 <input type="checkbox" id="animations-enabled" checked>
                                 <span class="checkmark"></span>
-                                <span class="setting-text">الحركات والتحريك</span>
+                                <span class="setting-text">التأثيرات البصرية</span>
                             </label>
                             <label class="setting-item">
                                 <input type="checkbox" id="auto-next" checked>
                                 <span class="checkmark"></span>
-                                <span class="setting-text">الانتقال التلقائي للسؤال التالي</span>
+                                <span class="setting-text">الانتقال التلقائي</span>
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <!-- بدء اللعبة -->
-                    <div class="action-buttons">
-                        <button id="quick-play" class="btn secondary">
-                            <i class="fas fa-bolt"></i> بدء سريع
-                        </button>
-                        <button id="start-game" class="btn primary">
-                            <i class="fas fa-play-circle"></i> بدء اللعبة الاحترافية
-                        </button>
-                        <button id="tutorial-btn" class="btn outline">
-                            <i class="fas fa-graduation-cap"></i> تعليمات اللعب
-                        </button>
-                    </div>
+                <!-- أزرار البدء -->
+                <div class="action-buttons">
+                    <button id="quick-play" class="btn secondary">
+                        <i class="fas fa-bolt"></i> بدء سريع
+                    </button>
+                    <button id="start-game" class="btn primary">
+                        <i class="fas fa-play-circle"></i> بدء اللعبة
+                    </button>
+                    <button id="tutorial-btn" class="btn outline">
+                        <i class="fas fa-graduation-cap"></i> تعليمات اللعب
+                    </button>
                 </div>
             </div>
         </section>
@@ -314,6 +231,7 @@
                             <div class="stat-label">ثانية</div>
                         </div>
                     </div>
+
                     <div class="stat-box score-box">
                         <i class="fas fa-coins"></i>
                         <div class="stat-content">
@@ -321,6 +239,7 @@
                             <div class="stat-label">دينار</div>
                         </div>
                     </div>
+
                     <div class="stat-box streak-box">
                         <i class="fas fa-fire"></i>
                         <div class="stat-content">
@@ -346,10 +265,10 @@
 
                 <div class="question-card">
                     <div class="question-value" id="question-value">100 دينار</div>
-                    <div class="question-text" id="question-text">ما هي عاصمة فرنسا؟</div>
+                    <div class="question-text" id="question-text">جاري تحميل السؤال...</div>
                     <div class="question-hint" id="question-hint">
                         <i class="fas fa-lightbulb"></i>
-                        <span>تلميح: تقع في أوروبا الغربية</span>
+                        <span>استخدم أدوات المساعدة للحصول على تلميحات</span>
                     </div>
                 </div>
 
@@ -383,36 +302,36 @@
                         <div class="lifeline-icon">½</div>
                         <div class="lifeline-info">
                             <div class="lifeline-name">50:50</div>
-                            <div class="lifeline-desc">يزيل إجابتين خاطئتين</div>
+                            <div class="lifeline-desc">حذف إجابتين خاطئتين</div>
                         </div>
-                        <div class="lifeline-status" id="status-5050">🟢</div>
+                        <div class="lifeline-status" id="status-5050">🔓</div>
                     </button>
-                    
+
                     <button class="lifeline-btn" id="lifeline-call" data-lifeline="call">
                         <div class="lifeline-icon">📞</div>
                         <div class="lifeline-info">
                             <div class="lifeline-name">اتصال بصديق</div>
                             <div class="lifeline-desc">استشارة خبير</div>
                         </div>
-                        <div class="lifeline-status" id="status-call">🟢</div>
+                        <div class="lifeline-status" id="status-call">🔓</div>
                     </button>
-                    
+
                     <button class="lifeline-btn" id="lifeline-audience" data-lifeline="audience">
                         <div class="lifeline-icon">👥</div>
                         <div class="lifeline-info">
                             <div class="lifeline-name">مساعدة الجمهور</div>
                             <div class="lifeline-desc">تصويت المشاهدين</div>
                         </div>
-                        <div class="lifeline-status" id="status-audience">🟢</div>
+                        <div class="lifeline-status" id="status-audience">🔓</div>
                     </button>
-                    
+
                     <button class="lifeline-btn" id="lifeline-hint" data-lifeline="hint">
                         <div class="lifeline-icon">💡</div>
                         <div class="lifeline-info">
                             <div class="lifeline-name">تلميح</div>
                             <div class="lifeline-desc">معلومات إضافية</div>
                         </div>
-                        <div class="lifeline-status" id="status-hint">🟢</div>
+                        <div class="lifeline-status" id="status-hint">🔓</div>
                     </button>
                 </div>
             </div>
@@ -423,22 +342,11 @@
                     <i class="fas fa-sign-out-alt"></i> انسحب
                 </button>
                 <div class="game-info">
-                    <span id="questions-left">14 سؤال متبقي</span>
+                    <span id="questions-left">14 سؤال متبقى</span>
                 </div>
                 <button class="control-btn success" id="next-btn" disabled>
                     <i class="fas fa-arrow-left"></i> التالي
                 </button>
-            </div>
-
-            <!-- شجرة الجوائز الجانبية -->
-            <div class="prize-sidebar">
-                <div class="prize-header">
-                    <h4><i class="fas fa-trophy"></i> شجرة الجوائز</h4>
-                    <div class="total-prize" id="total-prize">1,000,000 دينار</div>
-                </div>
-                <div class="prize-list" id="prize-list">
-                    <!-- سيتم تعبئتها بالجافاسكريبت -->
-                </div>
             </div>
         </section>
 
@@ -448,8 +356,8 @@
                 <div class="results-card">
                     <div class="results-header">
                         <div class="result-icon" id="result-icon">🏆</div>
-                        <h2 id="result-title">مبروك! لقد فزت</h2>
-                        <p id="result-subtitle">إنجاز رائع يستحق الاحتفال</p>
+                        <h2 id="result-title">انتهت اللعبة!</h2>
+                        <p id="result-subtitle">شاهد نتائجك</p>
                     </div>
 
                     <div class="results-content">
@@ -468,20 +376,23 @@
                                     <div class="stat-value" id="correct-count">0</div>
                                     <div class="stat-label">إجابات صحيحة</div>
                                 </div>
+
                                 <div class="stat-item">
                                     <div class="stat-icon">⏱️</div>
                                     <div class="stat-value" id="total-time">0</div>
                                     <div class="stat-label">ثانية</div>
                                 </div>
+
                                 <div class="stat-item">
-                                    <div class="stat-icon">⚡</div>
+                                    <div class="stat-icon">📊</div>
                                     <div class="stat-value" id="avg-time">0</div>
-                                    <div class="stat-label">متوسط وقت/سؤال</div>
+                                    <div class="stat-label">متوسط الوقت</div>
                                 </div>
+
                                 <div class="stat-item">
                                     <div class="stat-icon">🎯</div>
                                     <div class="stat-value" id="accuracy">0%</div>
-                                    <div class="stat-label">دقة الإجابات</div>
+                                    <div class="stat-label">دقة الإجابة</div>
                                 </div>
                             </div>
                         </div>
@@ -522,10 +433,11 @@
 
     <!-- عناصر إضافية -->
     <div class="notification-container" id="notification-container"></div>
+    
     <div class="modal-overlay" id="modal-overlay">
         <div class="modal" id="modal">
             <div class="modal-header">
-                <h3 id="modal-title">عنوان النافذة</h3>
+                <h3 id="modal-title">العنوان</h3>
                 <button class="modal-close" id="modal-close">&times;</button>
             </div>
             <div class="modal-body" id="modal-body">
@@ -548,15 +460,13 @@
         <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- الروابط -->
+    <!-- سكريبتات -->
     <script src="questions.js"></script>
     <script src="game.js"></script>
     <script>
-        // تهيئة فورية
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🎮 لعبة من سيربح المليون - النسخة الاحترافية 🚀');
-            console.log('📊 تم تحميل النظام الأساسي');
-            console.log('📚 جاهز للاتصال ببنك الأسئلة');
+            console.log("🎮 لعبة 'من سريع المليون' - الإصدار المحترف");
+            console.log("✅ تم تحميل النظام الأساسي");
         });
     </script>
 </body>
