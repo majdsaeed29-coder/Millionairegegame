@@ -1,37 +1,52 @@
-// ===== لعبة من سيربح المليون - نسخة الهاتف =====
+// ===== لعبة من سيربح المليون - النسخة الاحترافية =====
 class MillionaireGame {
     constructor() {
+        // الإعدادات الأساسية
         this.config = {
-            version: '2.0.0',
-            maxQuestions: 10,
+            version: '3.0.0',
+            maxQuestions: 15, // 15 سؤالاً للوصول إلى المليون
             prizes: [
-                100, 200, 300, 500, 1000,
-                2000, 4000, 8000, 16000, 32000
+                100,        // 1
+                200,        // 2
+                300,        // 3
+                500,        // 4
+                1000,       // 5 - Safe Haven
+                2000,       // 6
+                5000,       // 7
+                10000,      // 8
+                16000,      // 9
+                32000,      // 10 - Safe Haven
+                64000,      // 11
+                125000,     // 12
+                250000,     // 13
+                500000,     // 14
+                1000000     // 15 - المليون!
             ],
+            safeHavens: [5, 10], // الأسئلة المضمونة
             timePerQuestion: {
-                easy: 30,
-                medium: 20,
-                hard: 15
+                easy: 45,   // الأسئلة 1-5
+                medium: 30, // الأسئلة 6-10
+                hard: 20    // الأسئلة 11-15
             },
             lifelines: {
-                easy: 3,
-                medium: 2,
-                hard: 1
+                easy: 4,    // 4 أدوات للأسئلة السهلة
+                medium: 3,  // 3 أدوات للأسئلة المتوسطة
+                hard: 2     // 2 أداة للأسئلة الصعبة
             },
             categories: {},
-            difficulty: 'easy',
             currentCategory: 'ثقافة'
         };
 
+        // حالة اللعبة
         this.state = {
             screen: 'start',
             player: {
                 name: 'المتنافس',
-                avatar: '👨‍💼',
+                avatar: '👑',
                 score: 0,
                 level: 1,
                 xp: 0,
-                xpToNext: 100,
+                xpToNext: 1000,
                 streak: 0,
                 stats: {
                     gamesPlayed: 0,
@@ -39,20 +54,23 @@ class MillionaireGame {
                     totalQuestions: 0,
                     totalMoney: 0,
                     bestScore: 0,
-                    avgTime: 0
+                    avgTime: 0,
+                    highestStreak: 0
                 }
             },
             game: {
                 currentQuestion: 0,
                 selectedAnswer: null,
                 isAnswered: false,
-                timeLeft: 30,
+                timeLeft: 45,
                 timer: null,
                 lifelinesUsed: [],
                 questions: [],
                 startTime: null,
                 correctAnswers: 0,
-                totalTime: 0
+                totalTime: 0,
+                difficultyLevel: 'easy',
+                category: 'ثقافة'
             },
             settings: {
                 sound: true,
@@ -60,10 +78,13 @@ class MillionaireGame {
                 animations: true,
                 autoNext: true,
                 timerEnabled: true
-            }
+            },
+            isPremium: false // للاشتراك المميز
         };
 
         this.elements = {};
+        this.adsManager = null;
+        this.subscriptionManager = null;
         this.init();
     }
 
@@ -72,9 +93,13 @@ class MillionaireGame {
         this.cacheElements();
         this.bindEvents();
         this.loadSettings();
+        this.loadSubscriptionStatus();
         this.loadCategories();
         this.updatePlayerInfo();
         this.showNotification('مرحباً في من سيربح المليون!', 'info');
+        
+        // تهيئة نظام الإعلانات والاشتراك
+        this.initAdsSystem();
     }
 
     // تخزين عناصر DOM
@@ -92,8 +117,7 @@ class MillionaireGame {
             avatar: document.getElementById('player-avatar'),
             currentName: document.getElementById('current-player'),
             currentAvatar: document.getElementById('current-avatar'),
-            level: document.getElementById('player-level'),
-            xpProgress: document.getElementById('xp-progress')
+            level: document.getElementById('player-level')
         };
 
         // الفئات
@@ -108,7 +132,8 @@ class MillionaireGame {
         // الأزرار
         this.elements.startBtns = {
             quick: document.getElementById('quick-play'),
-            start: document.getElementById('start-game')
+            start: document.getElementById('start-game'),
+            subscribe: document.getElementById('subscribe-btn')
         };
 
         // معلومات اللعبة
@@ -131,7 +156,9 @@ class MillionaireGame {
         // أدوات المساعدة
         this.elements.lifelines = {
             '5050': document.getElementById('lifeline-5050'),
-            'hint': document.getElementById('lifeline-hint')
+            'call': document.getElementById('lifeline-call'),
+            'audience': document.getElementById('lifeline-audience'),
+            'skip': document.getElementById('lifeline-skip')
         };
 
         // أزرار التحكم
@@ -153,7 +180,8 @@ class MillionaireGame {
             correctCount: document.getElementById('correct-count'),
             totalTime: document.getElementById('total-time'),
             avgTime: document.getElementById('avg-time'),
-            accuracy: document.getElementById('accuracy')
+            accuracy: document.getElementById('accuracy'),
+            leaderboard: document.getElementById('leaderboard')
         };
 
         // الأصوات
@@ -164,12 +192,19 @@ class MillionaireGame {
             win: document.getElementById('sound-win')
         };
 
-        // أزرار التنقل
+        // التنقل
         this.elements.navBtns = {
             stats: document.getElementById('stats-btn'),
             sound: document.getElementById('sound-btn'),
-            help: document.getElementById('help-btn')
+            help: document.getElementById('help-btn'),
+            subscribe: document.getElementById('subscribe-btn')
         };
+
+        // تأثير الوميض
+        this.elements.flashOverlay = document.getElementById('flash-overlay');
+        
+        // مؤشر الاشتراك
+        this.elements.premiumIndicator = document.getElementById('premium-indicator');
     }
 
     // ربط الأحداث
@@ -208,15 +243,14 @@ class MillionaireGame {
                 option.classList.add('active');
                 this.state.settings.timerEnabled = option.dataset.timer === 'true';
                 this.saveSettings();
-                if (this.state.settings.sound) {
-                    this.playSound('click');
-                }
+                this.playSound('click');
             });
         });
 
         // أزرار البدء
         this.elements.startBtns.quick.addEventListener('click', () => this.startQuickGame());
         this.elements.startBtns.start.addEventListener('click', () => this.startGame());
+        this.elements.startBtns.subscribe.addEventListener('click', () => this.showSubscriptionModal());
 
         // أدوات المساعدة
         Object.keys(this.elements.lifelines).forEach(key => {
@@ -238,6 +272,7 @@ class MillionaireGame {
         this.elements.navBtns.sound.addEventListener('click', () => this.toggleSound());
         this.elements.navBtns.stats.addEventListener('click', () => this.showStats());
         this.elements.navBtns.help.addEventListener('click', () => this.showHelp());
+        this.elements.navBtns.subscribe.addEventListener('click', () => this.showSubscriptionModal());
 
         // زر الهروب
         document.addEventListener('keydown', (e) => {
@@ -252,18 +287,12 @@ class MillionaireGame {
 
     // إعداد أحداث اللمس
     setupTouchEvents() {
-        // منع التمرير غير المقصود
-        document.addEventListener('touchmove', (e) => {
-            if (e.target.closest('.answers-grid') || e.target.closest('.lifelines-grid')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-
-        // تأثيرات اللمس
         document.addEventListener('touchstart', (e) => {
+            // تأثيرات اللمس
             const target = e.target.closest('.answer-btn, .lifeline-btn, .btn, .control-btn, .action-btn');
             if (target) {
                 target.style.transform = 'scale(0.95)';
+                target.style.transition = 'transform 0.1s ease';
             }
         }, { passive: true });
 
@@ -271,21 +300,38 @@ class MillionaireGame {
             const target = e.target.closest('.answer-btn, .lifeline-btn, .btn, .control-btn, .action-btn');
             if (target) {
                 target.style.transform = '';
+                target.style.transition = 'transform 0.3s ease';
             }
         }, { passive: true });
+    }
+
+    // تهيئة نظام الإعلانات
+    initAdsSystem() {
+        this.adsManager = new AdManager(this);
+        this.subscriptionManager = new SubscriptionManager(this);
+    }
+
+    // تحميل حالة الاشتراك
+    loadSubscriptionStatus() {
+        const isPremium = localStorage.getItem('millionaire_premium') === 'true';
+        this.state.isPremium = isPremium;
+        
+        if (isPremium && this.elements.premiumIndicator) {
+            this.elements.premiumIndicator.style.display = 'inline-flex';
+        }
     }
 
     // تحميل الفئات
     loadCategories() {
         const categories = [
-            { id: 'ثقافة', name: 'ثقافة', icon: '📚' },
-            { id: 'تاريخ', name: 'تاريخ', icon: '🏛️' },
-            { id: 'جغرافيا', name: 'جغرافيا', icon: '🌍' },
-            { id: 'علوم', name: 'علوم', icon: '🔬' },
-            { id: 'رياضة', name: 'رياضة', icon: '⚽' },
-            { id: 'أطفال', name: 'أطفال', icon: '🧸' },
-            { id: 'سياسة', name: 'سياسة', icon: '💼' },
-            { id: 'شاملة', name: 'شاملة', icon: '🎯' }
+            { id: 'ثقافة', name: 'ثقافة', icon: '📚', description: 'أدب، فن، سينما، موسيقى' },
+            { id: 'تاريخ', name: 'تاريخ', icon: '🏛️', description: 'تاريخ عربي وعالمي' },
+            { id: 'جغرافيا', name: 'جغرافيا', icon: '🌍', description: 'دول، عواصم، طبيعة' },
+            { id: 'علوم', name: 'علوم', icon: '🔬', description: 'فيزياء، كيمياء، أحياء، فضاء' },
+            { id: 'رياضة', name: 'رياضة', icon: '⚽', description: 'كرة قدم، أولمبياد، ألعاب' },
+            { id: 'أطفال', name: 'أطفال', icon: '🧸', description: 'أسئلة تعليمية وترفيهية' },
+            { id: 'سياسة', name: 'سياسة', icon: '💼', description: 'سياسة عربية ودولية' },
+            { id: 'شاملة', name: 'شاملة', icon: '🎯', description: 'خليط من جميع الفئات' }
         ];
 
         this.config.categories = {};
@@ -308,9 +354,10 @@ class MillionaireGame {
             btn.innerHTML = `
                 <div class="category-icon">${category.icon}</div>
                 <div class="category-name">${category.name}</div>
+                <div class="category-desc">${category.description}</div>
             `;
 
-            if (category.id === this.state.game.currentCategory) {
+            if (category.id === this.state.game.category) {
                 btn.classList.add('selected');
             }
 
@@ -320,9 +367,8 @@ class MillionaireGame {
 
     // اختيار الفئة
     selectCategory(category) {
-        this.state.game.currentCategory = category;
+        this.state.game.category = category;
         
-        // تحديث الواجهة
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.classList.remove('selected');
             if (btn.dataset.category === category) {
@@ -331,17 +377,13 @@ class MillionaireGame {
         });
 
         this.elements.gameInfo.currentCategory.textContent = category;
-        
-        if (this.state.settings.sound) {
-            this.playSound('click');
-        }
+        this.playSound('click');
     }
 
     // اختيار مستوى الصعوبة
     selectDifficulty(level) {
-        this.config.difficulty = level;
+        this.state.game.difficultyLevel = level;
         
-        // تحديث الواجهة
         this.elements.difficultyOptions.forEach(option => {
             option.classList.remove('selected');
             if (option.dataset.level === level) {
@@ -349,13 +391,7 @@ class MillionaireGame {
             }
         });
 
-        this.elements.gameInfo.currentDifficulty.textContent =
-            level === 'easy' ? 'سهل' :
-            level === 'medium' ? 'متوسط' : 'صعب';
-
-        if (this.state.settings.sound) {
-            this.playSound('click');
-        }
+        this.playSound('click');
     }
 
     // بدء لعبة سريعة
@@ -387,6 +423,9 @@ class MillionaireGame {
         // تبديل الشاشة
         this.switchScreen('game');
 
+        // تحديث شجرة الجوائز
+        this.updatePrizeTrack();
+
         // بدء المؤقت
         this.startTimer();
 
@@ -399,22 +438,30 @@ class MillionaireGame {
         // تسجيل وقت البدء
         this.state.game.startTime = Date.now();
 
-        this.showNotification('بدأت اللعبة! حظاً موفقاً', 'success');
+        this.showNotification('بدأت اللعبة! حظاً موفقاً 🚀', 'success');
     }
 
     // إعادة تعيين حالة اللعبة
     resetGameState() {
+        const currentQuestion = this.state.game.currentQuestion;
+        let difficulty = 'easy';
+        
+        if (currentQuestion >= 10) difficulty = 'hard';
+        else if (currentQuestion >= 5) difficulty = 'medium';
+        
         this.state.game = {
             currentQuestion: 0,
             selectedAnswer: null,
             isAnswered: false,
-            timeLeft: this.config.timePerQuestion[this.config.difficulty],
+            timeLeft: this.config.timePerQuestion[difficulty],
             timer: null,
             lifelinesUsed: [],
             questions: [],
             startTime: null,
             correctAnswers: 0,
-            totalTime: 0
+            totalTime: 0,
+            difficultyLevel: difficulty,
+            category: this.state.game.category || 'ثقافة'
         };
 
         // إعادة تعيين أدوات المساعدة
@@ -428,90 +475,241 @@ class MillionaireGame {
         this.elements.controls.next.disabled = true;
     }
 
-    // تحميل الأسئلة
+    // تحميل الأسئلة (تستبدل هذه الدالة بقاعدة بياناتك)
     loadQuestions() {
-        // هذا هو مكان الربط بقاعدة البيانات
-        // حالياً نستخدم أسئلة تجريبية
+        // هذا مثال لأسئلة تجريبية
+        // ستقوم أنت بإضافة أسئلتك هنا أو ربطها بقاعدة بيانات
         
         const sampleQuestions = this.getSampleQuestions();
-        const shuffled = [...sampleQuestions].sort(() => Math.random() - 0.5);
-        this.state.game.questions = shuffled.slice(0, this.config.maxQuestions);
+        const categoryQuestions = sampleQuestions.filter(q => 
+            q.category === this.state.game.category || this.state.game.category === 'شاملة'
+        );
+        
+        if (categoryQuestions.length === 0) {
+            // إذا لم توجد أسئلة في الفئة، استخدم جميع الأسئلة
+            this.state.game.questions = sampleQuestions.slice(0, this.config.maxQuestions);
+        } else {
+            // استخدم أسئلة الفئة مع توزيع الصعوبة
+            const easy = categoryQuestions.filter(q => q.difficulty === 'easy');
+            const medium = categoryQuestions.filter(q => q.difficulty === 'medium');
+            const hard = categoryQuestions.filter(q => q.difficulty === 'hard');
+            
+            // 5 أسئلة سهلة، 5 متوسطة، 5 صعبة
+            const selectedQuestions = [
+                ...this.getRandomQuestions(easy, 5),
+                ...this.getRandomQuestions(medium, 5),
+                ...this.getRandomQuestions(hard, 5)
+            ];
+            
+            this.state.game.questions = selectedQuestions.slice(0, this.config.maxQuestions);
+        }
+        
+        // إذا لم تكن هناك أسئلة كافية
+        if (this.state.game.questions.length < this.config.maxQuestions) {
+            const needed = this.config.maxQuestions - this.state.game.questions.length;
+            const extraQuestions = this.getSampleQuestions().filter(q => 
+                !this.state.game.questions.includes(q)
+            );
+            this.state.game.questions.push(...this.getRandomQuestions(extraQuestions, needed));
+        }
     }
 
-    // الحصول على أسئلة تجريبية
+    // الحصول على أسئلة عشوائية
+    getRandomQuestions(questions, count) {
+        const shuffled = [...questions].sort(() => Math.random() - 0.5);
+        return shuffled.slice(0, count);
+    }
+
+    // أسئلة تجريبية (تستبدلها بأسئلتك)
     getSampleQuestions() {
         return [
+            // أسئلة سهلة (1-5)
             {
+                id: 1,
                 question: "ما هي عاصمة فرنسا؟",
-                answers: ["روما", "برلين", "باريس", "لندن"],
+                answers: ["لندن", "برلين", "باريس", "روما"],
                 correct: 2,
-                hint: "تقع في أوروبا الغربية",
-                category: "ثقافة"
+                hint: "تسمى مدينة الأنوار",
+                category: "جغرافيا",
+                difficulty: "easy",
+                explanation: "باريس هي عاصمة فرنسا وتسمى مدينة الأنوار"
             },
             {
+                id: 2,
                 question: "كم عدد أيام الأسبوع؟",
                 answers: ["5", "6", "7", "8"],
                 correct: 2,
                 hint: "من السبت إلى الجمعة",
-                category: "أطفال"
+                category: "أطفال",
+                difficulty: "easy",
+                explanation: "الأسبوع يتكون من 7 أيام"
             },
             {
-                question: "ما هو أطول نهر في العالم؟",
-                answers: ["الأمازون", "النيل", "يانغتسي", "الميسيسيبي"],
-                correct: 1,
-                hint: "يوجد في أفريقيا",
-                category: "جغرافيا"
-            },
-            {
-                question: "من هو مخترع المصباح الكهربائي؟",
-                answers: ["نيوتن", "أينشتاين", "اديسون", "تسلا"],
-                correct: 2,
-                hint: "أمريكي شهير",
-                category: "علوم"
-            },
-            {
-                question: "في أي سنة هجرية حدثت معركة بدر؟",
-                answers: ["1 هـ", "2 هـ", "3 هـ", "4 هـ"],
-                correct: 1,
-                hint: "السنة الثانية للهجرة",
-                category: "تاريخ"
-            },
-            {
-                question: "ما هي عاصمة الولايات المتحدة الأمريكية؟",
-                answers: ["نيويورك", "لوس أنجلوس", "واشنطن", "شيكاغو"],
-                correct: 2,
-                hint: "سميت على اسم رئيس",
-                category: "سياسة"
-            },
-            {
-                question: "كم عدد لاعبي كرة القدم في كل فريق؟",
-                answers: ["10", "11", "12", "13"],
-                correct: 1,
-                hint: "بما فيهم حارس المرمى",
-                category: "رياضة"
-            },
-            {
-                question: "من هو مؤلف كتاب 'الأمير'؟",
-                answers: ["أفلاطون", "ميكافيلي", "أرسطو", "هوبز"],
-                correct: 1,
-                hint: "إيطالي من عصر النهضة",
-                category: "ثقافة"
-            },
-            {
+                id: 3,
                 question: "ما هو لون التفاحة الناضجة؟",
                 answers: ["أخضر", "أحمر", "أصفر", "برتقالي"],
                 correct: 1,
                 hint: "عادة ما تكون حمراء",
-                category: "أطفال"
+                category: "أطفال",
+                difficulty: "easy",
+                explanation: "التفاحة الناضجة عادة ما تكون حمراء"
             },
             {
-                question: "ما هو أكبر محيط في العالم؟",
-                answers: ["المحيط الهندي", "المحيط الأطلسي", "المحيط الهادئ", "المحيط المتجمد"],
+                id: 4,
+                question: "من هو أول خليفة في الإسلام؟",
+                answers: ["عمر بن الخطاب", "عثمان بن عفان", "أبو بكر الصديق", "علي بن أبي طالب"],
                 correct: 2,
-                hint: "أكبر من جميع المحيطات",
-                category: "جغرافيا"
+                hint: "الصديق رفيق النبي",
+                category: "تاريخ",
+                difficulty: "easy",
+                explanation: "أبو بكر الصديق هو أول الخلفاء الراشدين"
+            },
+            {
+                id: 5,
+                question: "ما هو أكبر كوكب في المجموعة الشمسية؟",
+                answers: ["الأرض", "المشتري", "زحل", "نبتون"],
+                correct: 1,
+                hint: "الكوكب العملاق",
+                category: "علوم",
+                difficulty: "easy",
+                explanation: "المشتري هو أكبر كوكب في المجموعة الشمسية"
+            },
+            
+            // أسئلة متوسطة (6-10)
+            {
+                id: 6,
+                question: "من هو مؤلف كتاب 'الأمير'؟",
+                answers: ["أفلاطون", "ميكافيلي", "أرسطو", "هوبز"],
+                correct: 1,
+                hint: "كاتب إيطالي من عصر النهضة",
+                category: "ثقافة",
+                difficulty: "medium",
+                explanation: "نيكولو ميكافيلي هو مؤلف كتاب الأمير"
+            },
+            {
+                id: 7,
+                question: "في أي عام هجري حدثت معركة بدر؟",
+                answers: ["1 هـ", "2 هـ", "3 هـ", "4 هـ"],
+                correct: 1,
+                hint: "السنة الثانية للهجرة",
+                category: "تاريخ",
+                difficulty: "medium",
+                explanation: "معركة بدر الكبرى حدثت في السنة الثانية للهجرة"
+            },
+            {
+                id: 8,
+                question: "ما هو أطول نهر في العالم؟",
+                answers: ["الأمازون", "النيل", "يانغتسي", "الميسيسيبي"],
+                correct: 0,
+                hint: "يوجد في أمريكا الجنوبية",
+                category: "جغرافيا",
+                difficulty: "medium",
+                explanation: "نهر الأمازون هو أطول نهر في العالم"
+            },
+            {
+                id: 9,
+                question: "من هو مخترع المصباح الكهربائي؟",
+                answers: ["نيوتن", "أينشتاين", "إديسون", "تسلا"],
+                correct: 2,
+                hint: "مخترع أمريكي شهير",
+                category: "علوم",
+                difficulty: "medium",
+                explanation: "توماس إديسون هو مخترع المصباح الكهربائي المتوهج"
+            },
+            {
+                id: 10,
+                question: "ما هي عاصمة الولايات المتحدة الأمريكية؟",
+                answers: ["نيويورك", "لوس أنجلوس", "واشنطن", "شيكاغو"],
+                correct: 2,
+                hint: "سميت على اسم رئيس",
+                category: "سياسة",
+                difficulty: "medium",
+                explanation: "واشنطن العاصمة هي عاصمة الولايات المتحدة"
+            },
+            
+            // أسئلة صعبة (11-15)
+            {
+                id: 11,
+                question: "من هو الفنان الذي رسم لوحة 'الموناليزا'؟",
+                answers: ["فان جوخ", "رامبرانت", "ليوناردو دا فنشي", "بيكاسو"],
+                correct: 2,
+                hint: "فنان إيطالي من عصر النهضة",
+                category: "ثقافة",
+                difficulty: "hard",
+                explanation: "ليوناردو دا فنشي هو الفنان الإيطالي الذي رسم الموناليزا"
+            },
+            {
+                id: 12,
+                question: "ما هي النظرية التي وضعها أينشتاين لربط الزمان والمكان؟",
+                answers: ["النظرية النسبية", "النظرية الكمية", "نظرية الأوتار", "نظرية الفوضى"],
+                correct: 0,
+                hint: "نظرية فيزيائية شهيرة",
+                category: "علوم",
+                difficulty: "hard",
+                explanation: "النظرية النسبية لأينشتاين تربط بين الزمان والمكان"
+            },
+            {
+                id: 13,
+                question: "من هو السلطان العثماني الذي فتح القسطنطينية؟",
+                answers: ["سليم الأول", "سليمان القانوني", "محمد الفاتح", "بايزيد الثاني"],
+                correct: 2,
+                hint: "لقب بالفاتح",
+                category: "تاريخ",
+                difficulty: "hard",
+                explanation: "السلطان محمد الفاتح هو من فتح القسطنطينية عام 1453"
+            },
+            {
+                id: 14,
+                question: "ما هو أعمق نقطة في المحيطات؟",
+                answers: ["خندق ماريانا", "خندق بورتوريكو", "خندق اليابان", "خندق تونغا"],
+                correct: 0,
+                hint: "في المحيط الهادئ",
+                category: "جغرافيا",
+                difficulty: "hard",
+                explanation: "خندق ماريانا هو أعمق نقطة في المحيطات"
+            },
+            {
+                id: 15,
+                question: "من هو اللاعب الوحيد الذي فاز بكأس العالم 3 مرات؟",
+                answers: ["بيليه", "مارادونا", "زيدان", "ميسي"],
+                correct: 0,
+                hint: "لاعب برازيلي",
+                category: "رياضة",
+                difficulty: "hard",
+                explanation: "البرازيلي بيليه هو اللاعب الوحيد الذي فاز بكأس العالم 3 مرات"
             }
         ];
+    }
+
+    // تحديث شجرة الجوائز
+    updatePrizeTrack() {
+        const track = document.querySelector('.prize-track-inner');
+        if (!track) return;
+
+        track.innerHTML = '';
+        
+        this.config.prizes.forEach((prize, index) => {
+            const item = document.createElement('div');
+            item.className = 'prize-item';
+            
+            if (index === this.state.game.currentQuestion) {
+                item.classList.add('current');
+            } else if (index < this.state.game.currentQuestion) {
+                item.classList.add('passed');
+            }
+            
+            // وضع علامة على الأسئلة المضمونة
+            if (this.config.safeHavens.includes(index + 1)) {
+                item.style.borderStyle = 'dashed';
+            }
+            
+            item.innerHTML = `
+                <div class="prize-level">${index + 1}</div>
+                <div class="prize-amount">${prize.toLocaleString()}</div>
+            `;
+            
+            track.appendChild(item);
+        });
     }
 
     // عرض السؤال الحالي
@@ -527,11 +725,34 @@ class MillionaireGame {
         this.elements.gameInfo.questionsLeft.textContent = 
             `${this.config.maxQuestions - this.state.game.currentQuestion - 1} أسئلة متبقية`;
 
+        // تحديث مستوى الصعوبة بناءً على رقم السؤال
+        let difficultyText = 'سهل';
+        if (this.state.game.currentQuestion >= 10) difficultyText = 'صعب';
+        else if (this.state.game.currentQuestion >= 5) difficultyText = 'متوسط';
+        
+        this.elements.gameInfo.currentDifficulty.textContent = difficultyText;
+
         // إخفاء التلميح
         this.elements.gameInfo.questionHint.style.display = 'none';
 
         // عرض الإجابات
         this.renderAnswers(question.answers);
+        
+        // تحديث شجرة الجوائز
+        this.updatePrizeTrack();
+        
+        // تحديث وقت السؤال بناءً على صعوبته
+        this.updateQuestionTime();
+    }
+
+    // تحديث وقت السؤال
+    updateQuestionTime() {
+        let difficulty = 'easy';
+        if (this.state.game.currentQuestion >= 10) difficulty = 'hard';
+        else if (this.state.game.currentQuestion >= 5) difficulty = 'medium';
+        
+        this.state.game.timeLeft = this.config.timePerQuestion[difficulty];
+        this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
     }
 
     // عرض الإجابات
@@ -579,8 +800,11 @@ class MillionaireGame {
         const isCorrect = index === question.correct;
 
         // تسجيل الوقت المستغرق
-        const timeUsed = this.config.timePerQuestion[this.config.difficulty] - this.state.game.timeLeft;
+        const timeUsed = this.state.game.timeLeft;
         this.state.game.totalTime += timeUsed;
+
+        // تطبيق تأثير الوميض
+        this.applyFlashEffect(isCorrect);
 
         if (isCorrect) {
             this.handleCorrectAnswer(index);
@@ -590,6 +814,20 @@ class MillionaireGame {
 
         // إيقاف المؤقت
         clearInterval(this.state.game.timer);
+    }
+
+    // تطبيق تأثير الوميض
+    applyFlashEffect(isCorrect) {
+        const flashOverlay = this.elements.flashOverlay;
+        flashOverlay.className = 'flash-overlay ' + (isCorrect ? 'flash-green' : 'flash-red');
+        
+        // إعادة تعيين للسماح بتطبيق الأنيميشن مرة أخرى
+        void flashOverlay.offsetWidth;
+        
+        // إخفاء التأثير بعد الانتهاء
+        setTimeout(() => {
+            flashOverlay.className = 'flash-overlay';
+        }, 1000);
     }
 
     // التعامل مع الإجابة الصحيحة
@@ -607,6 +845,11 @@ class MillionaireGame {
         this.state.player.streak++;
         this.elements.gameInfo.streakCount.textContent = this.state.player.streak;
 
+        // تحديث أعلى تتابع
+        if (this.state.player.streak > this.state.player.stats.highestStreak) {
+            this.state.player.stats.highestStreak = this.state.player.streak;
+        }
+
         // تحديث النقاط على الشاشة
         this.elements.gameInfo.currentScore.textContent = this.state.player.score.toLocaleString();
 
@@ -620,7 +863,7 @@ class MillionaireGame {
             navigator.vibrate([100, 50, 100]);
         }
 
-        this.showNotification('إجابة صحيحة! مبروك', 'success');
+        this.showNotification('إجابة صحيحة! مبروك 🎉', 'success');
     }
 
     // التعامل مع الإجابة الخاطئة
@@ -651,7 +894,7 @@ class MillionaireGame {
             navigator.vibrate([200, 100, 200, 100, 200]);
         }
 
-        this.showNotification('إجابة خاطئة! حاول مرة أخرى', 'error');
+        this.showNotification('إجابة خاطئة! حاول مرة أخرى 💪', 'error');
         
         // الانتقال لشاشة النتائج بعد تأخير
         setTimeout(() => {
@@ -677,7 +920,7 @@ class MillionaireGame {
         // إعادة تعيين حالة السؤال
         this.state.game.selectedAnswer = null;
         this.state.game.isAnswered = false;
-        this.state.game.timeLeft = this.config.timePerQuestion[this.config.difficulty];
+        this.updateQuestionTime();
 
         // تحديث الواجهة
         this.elements.controls.next.disabled = true;
@@ -696,10 +939,11 @@ class MillionaireGame {
 
         if (!this.state.settings.timerEnabled) {
             this.elements.gameInfo.timeLeft.textContent = '∞';
+            this.elements.gameInfo.timeLeft.style.color = 'var(--success)';
             return;
         }
 
-        this.state.game.timeLeft = this.config.timePerQuestion[this.config.difficulty];
+        this.elements.gameInfo.timeLeft.style.color = 'white';
         this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
 
         this.state.game.timer = setInterval(() => {
@@ -722,7 +966,10 @@ class MillionaireGame {
         if (!this.state.settings.timerEnabled) return;
 
         clearInterval(this.state.game.timer);
-        this.showNotification("انتهى الوقت!", 'error');
+        this.showNotification("انتهى الوقت! ⏰", 'error');
+
+        // تطبيق تأثير الوميض الأحمر
+        this.applyFlashEffect(false);
 
         // تعطيل جميع الإجابات
         document.querySelectorAll('.answer-btn').forEach(btn => {
@@ -736,6 +983,14 @@ class MillionaireGame {
             correctBtn.classList.add('correct');
         }
 
+        // تمكين زر التالي
+        this.elements.controls.next.disabled = false;
+
+        // تشغيل الصوت
+        if (this.state.settings.sound) {
+            this.playSound('wrong');
+        }
+
         // الانتقال لشاشة النتائج بعد تأخير
         setTimeout(() => {
             this.endGame(false);
@@ -743,7 +998,7 @@ class MillionaireGame {
     }
 
     // استخدام أداة المساعدة
-    useLifeline(type) {
+    async useLifeline(type) {
         if (this.state.game.lifelinesUsed.includes(type)) {
             return;
         }
@@ -751,12 +1006,25 @@ class MillionaireGame {
         const question = this.state.game.questions[this.state.game.currentQuestion];
         const lifeline = this.elements.lifelines[type];
 
+        // التحقق من تخطي السؤال (يتطلب إعلان)
+        if (type === 'skip') {
+            if (!this.state.isPremium) {
+                const adWatched = await this.adsManager.showAd('skip');
+                if (!adWatched) return;
+            }
+            this.skipQuestion();
+            return;
+        }
+
         switch(type) {
             case '5050':
                 this.useFiftyFifty(question);
                 break;
-            case 'hint':
-                this.useHint(question);
+            case 'call':
+                this.useCallFriend(question);
+                break;
+            case 'audience':
+                this.useAudiencePoll(question);
                 break;
         }
 
@@ -765,9 +1033,7 @@ class MillionaireGame {
         lifeline.disabled = true;
         lifeline.style.opacity = '0.6';
         
-        if (this.state.settings.sound) {
-            this.playSound('click');
-        }
+        this.playSound('click');
     }
 
     // 50:50
@@ -778,22 +1044,118 @@ class MillionaireGame {
         document.querySelectorAll('.answer-btn').forEach((btn, index) => {
             if (toRemove.includes(index)) {
                 btn.style.opacity = '0.3';
-                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
             }
         });
 
-        this.showNotification('تم حذف إجابتين خاطئتين', 'info');
+        this.showNotification('تم حذف إجابتين خاطئتين 🎯', 'info');
     }
 
-    // استخدام التلميح
-    useHint(question) {
-        const hint = question.hint || 'حاول التفكير بشكل مختلف';
-        this.elements.gameInfo.questionHint.innerHTML = `
-            <i class="fas fa-lightbulb"></i>
-            <span>${hint}</span>
-        `;
-        this.elements.gameInfo.questionHint.style.display = 'flex';
-        this.showNotification('تلميح: ' + hint, 'info');
+    // اتصال بصديق
+    useCallFriend(question) {
+        // محاكاة نصيحة الصديق
+        const isConfident = Math.random() < 0.7;
+        let suggestedAnswer;
+        
+        if (isConfident) {
+            suggestedAnswer = question.correct;
+        } else {
+            const wrongAnswers = [0, 1, 2, 3].filter(i => i !== question.correct);
+            suggestedAnswer = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
+        }
+        
+        const answerLetters = ['أ', 'ب', 'ج', 'د'];
+        const friendMessages = [
+            `أعتقد أن الإجابة هي ${answerLetters[suggestedAnswer]}`,
+            `أنا متأكد بنسبة 80% أنها ${answerLetters[suggestedAnswer]}`,
+            `رأيي الشخصي أنها ${answerLetters[suggestedAnswer]}`,
+            `بناءً على معرفتي، أختار ${answerLetters[suggestedAnswer]}`
+        ];
+        
+        const message = friendMessages[Math.floor(Math.random() * friendMessages.length)];
+        const confidence = isConfident ? 'واثق' : 'غير متأكد';
+
+        this.showModal('اتصال بصديق 📞', `
+            <div class="lifeline-modal">
+                <div class="friend-call">
+                    <div class="friend-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="friend-message">
+                        <p class="message">"${message}"</p>
+                        <p class="confidence">الحالة: ${confidence}</p>
+                    </div>
+                </div>
+                <p class="hint">نصيحة: هذا مجرد رأي، القرار النهائي لك 🤔</p>
+            </div>
+        `);
+    }
+
+    // رأي الجمهور
+    useAudiencePoll(question) {
+        // محاكاة تصويت الجمهور
+        let percentages = [0, 0, 0, 0];
+        
+        // الإجابة الصحيحة تحصل على أعلى نسبة
+        percentages[question.correct] = 60 + Math.random() * 25;
+        
+        // توزيع النسبة المتبقية
+        let remaining = 100 - percentages[question.correct];
+        const wrongAnswers = [0, 1, 2, 3].filter(i => i !== question.correct);
+        
+        wrongAnswers.forEach((answer, index) => {
+            if (index === wrongAnswers.length - 1) {
+                percentages[answer] = remaining;
+            } else {
+                const share = Math.random() * remaining * 0.7;
+                percentages[answer] = share;
+                remaining -= share;
+            }
+        });
+        
+        // عرض النتائج
+        let html = '<div class="audience-poll">';
+        html += '<h4><i class="fas fa-users"></i> تصويت الجمهور</h4>';
+        
+        percentages.forEach((percent, index) => {
+            const answerLetters = ['أ', 'ب', 'ج', 'د'];
+            html += `
+                <div class="poll-row">
+                    <span class="poll-letter">${answerLetters[index]}</span>
+                    <div class="poll-bar">
+                        <div class="poll-fill" style="width: ${percent}%"></div>
+                    </div>
+                    <span class="poll-percent">${Math.round(percent)}%</span>
+                </div>
+            `;
+        });
+        
+        html += '<p class="poll-note">هذه نتائج افتراضية بناءً على إحصائيات سابقة 📊</p>';
+        html += '</div>';
+        
+        this.showModal('تصويت الجمهور 👥', html);
+    }
+
+    // تخطي السؤال
+    skipQuestion() {
+        this.state.game.currentQuestion++;
+        
+        if (this.state.game.currentQuestion >= this.config.maxQuestions) {
+            this.endGame(true);
+            return;
+        }
+        
+        // تحديث الواجهة
+        this.updateQuestionTime();
+        this.elements.gameInfo.timeLeft.textContent = this.state.game.timeLeft;
+        
+        // عرض السؤال الجديد
+        this.displayQuestion();
+        
+        // إعادة تشغيل المؤقت
+        this.startTimer();
+        
+        this.showNotification('تم تخطي السؤال بنجاح! ⏭️', 'success');
     }
 
     // إنهاء اللعبة
@@ -808,7 +1170,7 @@ class MillionaireGame {
         this.elements.results.icon.textContent = isWin ? '🏆' : '💡';
         this.elements.results.title.textContent = isWin ? 'مبروك! لقد فزت' : 'انتهت اللعبة';
         this.elements.results.subtitle.textContent = isWin ? 
-            'إنجاز رائع يستحق الاحتفال' : 'حاول مرة أخرى لتحقيق نتيجة أفضل';
+            'إنجاز رائع يستحق الاحتفال 🎊' : 'حاول مرة أخرى لتحقيق نتيجة أفضل 💪';
 
         this.elements.results.finalAmount.textContent = this.state.player.score.toLocaleString() + ' دينار';
         this.elements.results.prizeConversion.textContent = `≈ ${Math.floor(this.state.player.score / 1000)} دولار`;
@@ -823,6 +1185,7 @@ class MillionaireGame {
         this.state.player.stats.totalCorrect += this.state.game.correctAnswers;
         this.state.player.stats.totalQuestions += this.state.game.currentQuestion + 1;
         this.state.player.stats.totalMoney += this.state.player.score;
+        this.state.player.stats.avgTime = Math.floor((this.state.player.stats.avgTime + avgTime) / 2);
 
         if (this.state.player.score > this.state.player.stats.bestScore) {
             this.state.player.stats.bestScore = this.state.player.score;
@@ -838,6 +1201,9 @@ class MillionaireGame {
         // حفظ بيانات اللاعب
         this.savePlayerData();
 
+        // تحديث لوحة المتصدرين
+        this.updateLeaderboard();
+
         // تبديل الشاشة
         this.switchScreen('results');
 
@@ -850,8 +1216,13 @@ class MillionaireGame {
             }
         }
 
+        // تطبيق تأثير الوميض
+        if (isWin) {
+            this.applyFlashEffect(true);
+        }
+
         this.showNotification(
-            isWin ? 'إنجاز رائع! شاهد نتائجك' : 'حاول مرة أخرى، أنت تستطيع!',
+            isWin ? 'إنجاز رائع! شاهد نتائجك 🎉' : 'حاول مرة أخرى، أنت تستطيع! 💪',
             isWin ? 'success' : 'info'
         );
     }
@@ -859,8 +1230,9 @@ class MillionaireGame {
     // حساب نقاط الخبرة
     calculateXP(isWin, score, accuracy) {
         let xp = Math.floor(score / 100);
-        xp += isWin ? 50 : 10;
-        xp += Math.floor(accuracy / 10);
+        xp += isWin ? 500 : 100;
+        xp += Math.floor(accuracy);
+        xp += this.state.player.streak * 10;
         return xp;
     }
 
@@ -871,7 +1243,7 @@ class MillionaireGame {
             this.state.player.level++;
             this.state.player.xpToNext = Math.floor(this.state.player.xpToNext * 1.5);
 
-            this.showNotification(`مبروك! لقد وصلت للمستوى ${this.state.player.level}`, 'success');
+            this.showNotification(`مبروك! لقد وصلت للمستوى ${this.state.player.level} ⭐`, 'success');
         }
 
         this.updatePlayerInfo();
@@ -881,20 +1253,57 @@ class MillionaireGame {
     updatePlayerInfo() {
         this.elements.player.currentName.textContent = this.state.player.name;
         this.elements.player.currentAvatar.textContent = this.state.player.avatar;
-        this.elements.player.level.textContent = `مستوى ${this.state.player.level}`;
-
-        const xpPercentage = (this.state.player.xp / this.state.player.xpToNext) * 100;
-        this.elements.player.xpProgress.style.width = xpPercentage + '%';
+        this.elements.player.level.textContent = `المستوى ${this.state.player.level}`;
     }
 
     // تحديث معلومات اللعبة
     updateGameInfo() {
         this.elements.gameInfo.currentScore.textContent = this.state.player.score.toLocaleString();
         this.elements.gameInfo.streakCount.textContent = this.state.player.streak;
-        this.elements.gameInfo.currentCategory.textContent = this.state.game.currentCategory;
-        this.elements.gameInfo.currentDifficulty.textContent =
-            this.config.difficulty === 'easy' ? 'سهل' :
-            this.config.difficulty === 'medium' ? 'متوسط' : 'صعب';
+        this.elements.gameInfo.currentCategory.textContent = this.state.game.category;
+    }
+
+    // تحديث لوحة المتصدرين
+    updateLeaderboard() {
+        if (!this.elements.results.leaderboard) return;
+
+        const leaderboardData = JSON.parse(localStorage.getItem('millionaire_leaderboard') || '[]');
+        
+        // إضافة النتيجة الحالية
+        const currentScore = {
+            name: this.state.player.name,
+            score: this.state.player.score,
+            date: new Date().toLocaleDateString('ar-SA'),
+            level: this.state.player.level,
+            avatar: this.state.player.avatar
+        };
+
+        leaderboardData.push(currentScore);
+
+        // ترتيب من الأعلى للأدنى
+        leaderboardData.sort((a, b) => b.score - a.score);
+
+        // الاحتفاظ بأفضل 10 نتائج فقط
+        const top10 = leaderboardData.slice(0, 10);
+        localStorage.setItem('millionaire_leaderboard', JSON.stringify(top10));
+
+        this.elements.results.leaderboard.innerHTML = '';
+
+        top10.forEach((player, index) => {
+            const isCurrent = player.name === this.state.player.name && 
+                             player.score === this.state.player.score;
+
+            const item = document.createElement('div');
+            item.className = `leaderboard-item ${isCurrent ? 'current' : ''}`;
+            item.innerHTML = `
+                <div class="leaderboard-rank">${index + 1}</div>
+                <div class="leaderboard-avatar">${player.avatar || '👤'}</div>
+                <div class="leaderboard-name">${player.name}</div>
+                <div class="leaderboard-score">${player.score.toLocaleString()}</div>
+            `;
+
+            this.elements.results.leaderboard.appendChild(item);
+        });
     }
 
     // تبديل الشاشات
@@ -925,7 +1334,7 @@ class MillionaireGame {
         icon.className = this.state.settings.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
 
         this.saveSettings();
-        this.showNotification(this.state.settings.sound ? 'تم تشغيل الصوت' : 'تم إيقاف الصوت', 'info');
+        this.showNotification(this.state.settings.sound ? 'تم تشغيل الصوت 🔊' : 'تم إيقاف الصوت 🔇', 'info');
     }
 
     // عرض الإحصائيات
@@ -961,14 +1370,15 @@ class MillionaireGame {
                 </div>
                 <div class="advanced-stats">
                     <h4>إحصائيات متقدمة</h4>
-                    <p>معدل الفوز: ${winRate}%</p>
-                    <p>متوسط وقت الإجابة: ${stats.avgTime || 0} ثانية</p>
-                    <p>الدقة العامة: ${stats.totalQuestions > 0 ? Math.floor((stats.totalCorrect / stats.totalQuestions) * 100) : 0}%</p>
+                    <p><i class="fas fa-trophy"></i> معدل الفوز: ${winRate}%</p>
+                    <p><i class="fas fa-clock"></i> متوسط وقت الإجابة: ${stats.avgTime || 0} ثانية</p>
+                    <p><i class="fas fa-fire"></i> أعلى تتابع: ${stats.highestStreak}</p>
+                    <p><i class="fas fa-chart-pie"></i> الدقة العامة: ${stats.totalQuestions > 0 ? Math.floor((stats.totalCorrect / stats.totalQuestions) * 100) : 0}%</p>
                 </div>
             </div>
         `;
 
-        this.showModal('إحصائيات اللاعب', content);
+        this.showModal('إحصائيات اللاعب 📊', content);
     }
 
     // عرض التعليمات
@@ -977,25 +1387,37 @@ class MillionaireGame {
             <div class="help-content">
                 <h3><i class="fas fa-graduation-cap"></i> كيفية اللعب</h3>
                 <ol>
-                    <li>اختر اسمك وصورتك الرمزية</li>
-                    <li>اختر فئة الأسئلة المفضلة لديك</li>
-                    <li>اختر مستوى الصعوبة المناسب</li>
-                    <li>حدد إذا كنت تريد مؤقت أم لا</li>
-                    <li>اضغط على "بدء اللعبة"</li>
-                    <li>اختر الإجابة الصحيحة قبل انتهاء الوقت</li>
-                    <li>استخدم أدوات المساعدة بحكمة</li>
-                    <li>احصل على أكبر قدر من المال!</li>
+                    <li><strong>اختر اسمك</strong> وصورتك الرمزية</li>
+                    <li><strong>اختر فئة الأسئلة</strong> المفضلة لديك</li>
+                    <li><strong>ابدأ اللعبة</strong> واجب على 15 سؤالاً</li>
+                    <li><strong>احصل على المليون دينار</strong> باجتياز جميع الأسئلة</li>
                 </ol>
                 
-                <h4>نظام الجوائز</h4>
-                <p>10 أسئلة مع جوائز متزايدة تصل إلى 32,000 دينار</p>
+                <h4><i class="fas fa-life-ring"></i> أدوات المساعدة</h4>
+                <ul>
+                    <li><strong>50:50</strong> - يحذف إجابتين خاطئتين</li>
+                    <li><strong>اتصال بصديق</strong> - استشارة خبير</li>
+                    <li><strong>رأي الجمهور</strong> - تصويت المشاهدين</li>
+                    <li><strong>تخطي السؤال</strong> - شاهد إعلان لتخطي</li>
+                </ul>
                 
-                <h4>نظام الإنجازات</h4>
-                <p>اكسب نقاط خبرة وارتفع في المستويات</p>
+                <h4><i class="fas fa-money-bill-wave"></i> نظام الجوائز</h4>
+                <p>15 سؤالاً مع جوائز متزايدة تصل إلى 1,000,000 دينار</p>
+                <p>الأسئلة 5 و10 مضمونة (Safe Haven)</p>
+                
+                <h4><i class="fas fa-crown"></i> النسخة المميزة</h4>
+                <p>اشترك لإزالة الإعلانات والحصول على ميزات حصرية</p>
             </div>
         `;
 
-        this.showModal('تعليمات اللعبة', content);
+        this.showModal('تعليمات اللعبة ❓', content);
+    }
+
+    // عرض نافذة الاشتراك
+    showSubscriptionModal() {
+        if (this.subscriptionManager) {
+            this.subscriptionManager.showSubscriptionModal();
+        }
     }
 
     // عرض نافذة
@@ -1025,18 +1447,14 @@ class MillionaireGame {
         closeBtn.onclick = () => {
             overlay.classList.remove('active');
             setTimeout(() => overlay.remove(), 300);
-            if (this.state.settings.sound) {
-                this.playSound('click');
-            }
+            this.playSound('click');
         };
 
         overlay.onclick = (e) => {
             if (e.target === overlay) {
                 overlay.classList.remove('active');
                 setTimeout(() => overlay.remove(), 300);
-                if (this.state.settings.sound) {
-                    this.playSound('click');
-                }
+                this.playSound('click');
             }
         };
     }
@@ -1077,18 +1495,20 @@ class MillionaireGame {
         this.switchScreen('start');
         this.loadCategories();
         this.updatePlayerInfo();
-        this.showNotification('استعد للجولة القادمة!', 'info');
+        this.showNotification('استعد للجولة القادمة! 🚀', 'info');
     }
 
     // العودة للقائمة الرئيسية
     goToMainMenu() {
         this.switchScreen('start');
-        this.showNotification('العودة للقائمة الرئيسية', 'info');
+        this.showNotification('العودة للقائمة الرئيسية 🏠', 'info');
     }
 
     // مشاركة النتائج
     shareResults() {
-        const shareText = `💰 ربحت ${this.state.player.score.toLocaleString()} دينار في لعبة من سيربح المليون!`;
+        const shareText = `💰 ربحت ${this.state.player.score.toLocaleString()} دينار في لعبة من سيربح المليون! 
+لعبت ${this.state.game.correctAnswers} من ${this.state.game.currentQuestion + 1} إجابة صحيحة.
+جربها الآن: ${window.location.href}`;
 
         if (navigator.share) {
             navigator.share({
@@ -1098,7 +1518,7 @@ class MillionaireGame {
             }).catch(console.error);
         } else {
             navigator.clipboard.writeText(shareText).then(() => {
-                this.showNotification('تم نسخ النتيجة إلى الحافظة', 'success');
+                this.showNotification('تم نسخ النتيجة إلى الحافظة 📋', 'success');
             }).catch(() => {
                 alert(shareText);
             });
@@ -1117,6 +1537,15 @@ class MillionaireGame {
                 const icon = this.elements.navBtns.sound.querySelector('i');
                 if (icon) {
                     icon.className = this.state.settings.sound ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+                }
+                
+                // تحديث إعدادات المؤقت
+                if (this.state.settings.timerEnabled !== undefined) {
+                    const timerOption = document.querySelector(`.timer-option[data-timer="${this.state.settings.timerEnabled}"]`);
+                    if (timerOption) {
+                        document.querySelectorAll('.timer-option').forEach(opt => opt.classList.remove('active'));
+                        timerOption.classList.add('active');
+                    }
                 }
             } catch (e) {
                 console.log('خطأ في تحميل الإعدادات:', e);
@@ -1149,5 +1578,8 @@ let game;
 document.addEventListener('DOMContentLoaded', function() {
     game = new MillionaireGame();
     window.game = game;
-    console.log('من سيربح المليون - نسخة الهاتف جاهزة!');
+    console.log('🚀 من سيربح المليون - النسخة الاحترافية 3.0.0');
+    console.log('🎮 نظام 15 سؤالاً كاملاً مع تأثيرات الوميض');
+    console.log('🛠️ 4 أدوات مساعدة + نظام إعلانات واشتراك');
+    console.log('📱 تصميم متكامل للهواتف');
 });
