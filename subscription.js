@@ -1,62 +1,35 @@
-// ===== نظام الاشتراك المميز =====
+// subscription.js - النسخة المبسطة
 class SubscriptionManager {
     constructor(game) {
         this.game = game;
-        this.plans = {
-            monthly: {
-                id: 'monthly',
-                name: 'اشتراك شهري',
-                price: 9.99,
-                currency: 'USD',
-                period: 'شهر',
-                features: [
-                    'إزالة جميع الإعلانات',
-                    '4 أدوات مساعدة إضافية',
-                    'أسئلة حصرية',
-                    'خلفيات مميزة',
-                    'إحصائيات متقدمة'
-                ],
-                popular: true
-            },
-            yearly: {
-                id: 'yearly',
-                name: 'اشتراك سنوي',
-                price: 99.99,
-                currency: 'USD',
-                period: 'سنة',
-                discount: '20%',
-                features: [
-                    'كل ميزات الشهري',
-                    '3 حيوات مجانية شهرياً',
-                    'شارة مميزة في الملف',
-                    'دعم مباشر',
-                    'دخول البطولة السنوية'
-                ]
-            },
-            lifetime: {
-                id: 'lifetime',
-                name: 'اشتراك دائم',
-                price: 299.99,
-                currency: 'USD',
-                period: 'مدى الحياة',
-                features: [
-                    'كل الميزات مدى الحياة',
-                    'دخول جميع البطولات',
-                    'مستشار شخصي',
-                    'تحديثات مجانية دائمة',
-                    'رعاية خاصة'
-                ]
+        this.isPremium = false;
+        this.checkPremiumStatus();
+    }
+
+    // التحقق من حالة الاشتراك
+    checkPremiumStatus() {
+        const saved = localStorage.getItem('millionaire_premium');
+        if (saved) {
+            const data = JSON.parse(saved);
+            const expiry = new Date(data.expiry);
+            
+            if (expiry > new Date()) {
+                this.isPremium = true;
+                this.game.state.isPremium = true;
+                this.showPremiumBadge();
+            } else {
+                // انتهاء الاشتراك
+                localStorage.removeItem('millionaire_premium');
             }
-        };
-        
-        this.paymentMethods = [
-            { id: 'visa', name: 'Visa', icon: 'fab fa-cc-visa' },
-            { id: 'mastercard', name: 'MasterCard', icon: 'fab fa-cc-mastercard' },
-            { id: 'paypal', name: 'PayPal', icon: 'fab fa-cc-paypal' },
-            { id: 'applepay', name: 'Apple Pay', icon: 'fab fa-cc-apple-pay' },
-            { id: 'googlepay', name: 'Google Pay', icon: 'fab fa-google-pay' },
-            { id: 'stcpay', name: 'STC Pay', icon: 'fas fa-mobile-alt' }
-        ];
+        }
+    }
+
+    // عرض شارة الاشتراك
+    showPremiumBadge() {
+        const badge = document.getElementById('premium-indicator');
+        if (badge) {
+            badge.style.display = 'inline-flex';
+        }
     }
 
     // عرض نافذة الاشتراك
@@ -70,88 +43,48 @@ class SubscriptionManager {
                         <i class="fas fa-crown"></i>
                     </div>
                     <h2>النسخة المميزة</h2>
-                    <p>استمتع بتجربة خالية من الإعلانات وميزات حصرية</p>
+                    <p>أزل الإعلانات واستمبل بلعبة خالية من المزعجات</p>
+                </div>
+
+                <div class="plan-card popular">
+                    <div class="popular-badge">الأكثر اختياراً</div>
+                    <h3>الاشتراك الشهري</h3>
+                    <div class="plan-price">
+                        <span class="price">9.99</span>
+                        <span class="currency">$</span>
+                        <span class="period">/شهر</span>
+                    </div>
                     
-                    <div class="premium-badge">
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> إزالة جميع الإعلانات</li>
+                        <li><i class="fas fa-check"></i> أدوات مساعدة إضافية</li>
+                        <li><i class="fas fa-check"></i> خلفيات حصرية</li>
+                        <li><i class="fas fa-check"></i> دعم فني متميز</li>
+                    </ul>
+                    
+                    <button class="subscribe-btn" id="subscribe-monthly">
                         <i class="fas fa-gem"></i>
-                        <span>مميز</span>
-                    </div>
+                        اشترك الآن
+                    </button>
                 </div>
-                
-                <div class="subscription-plans" id="subscription-plans">
-                    ${this.generatePlansHTML()}
-                </div>
-                
-                <div class="subscription-features">
-                    <h3><i class="fas fa-star"></i> مميزات الاشتراك</h3>
-                    <div class="features-grid">
-                        <div class="feature-item">
-                            <i class="fas fa-ban"></i>
-                            <span>لا إعلانات</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-life-ring"></i>
-                            <span>أدوات مساعدة إضافية</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-question-circle"></i>
-                            <span>أسئلة حصرية</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-palette"></i>
-                            <span>خلفيات مميزة</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-chart-line"></i>
-                            <span>إحصائيات متقدمة</span>
-                        </div>
-                        <div class="feature-item">
-                            <i class="fas fa-headset"></i>
-                            <span>دعم فني متميز</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="payment-methods">
-                    <h3><i class="fas fa-credit-card"></i> طرق الدفع المتاحة</h3>
-                    <div class="methods-grid">
-                        ${this.generatePaymentMethodsHTML()}
-                    </div>
-                </div>
-                
+
                 <div class="subscription-footer">
                     <p class="terms">
                         <i class="fas fa-shield-alt"></i>
-                        الدفع آمن ومشفر. يمكنك الإلغاء في أي وقت.
+                        الدفع آمن. يمكنك الإلغاء في أي وقت.
                     </p>
-                    <p class="trial">
-                        <i class="fas fa-gift"></i>
-                        جرب 3 أيام مجاناً قبل الاشتراك!
-                    </p>
+                    <button class="close-subscription">
+                        <i class="fas fa-times"></i> إغلاق
+                    </button>
                 </div>
-                
-                <button class="close-subscription">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        // معالجة اختيار الخطة
-        modal.querySelectorAll('.plan-card').forEach(card => {
-            card.addEventListener('click', () => {
-                modal.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-            });
-        });
-
         // زر الاشتراك
-        modal.querySelectorAll('.subscribe-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const planId = btn.dataset.plan;
-                this.processSubscription(planId, modal);
-            });
+        document.getElementById('subscribe-monthly').addEventListener('click', () => {
+            this.processSubscription();
         });
 
         // إغلاق النافذة
@@ -166,134 +99,412 @@ class SubscriptionManager {
         });
     }
 
-    // توليد HTML للخطط
-    generatePlansHTML() {
-        let html = '';
-        
-        Object.values(this.plans).forEach(plan => {
-            const monthlyPrice = plan.period === 'سنة' ? (plan.price / 12).toFixed(2) : plan.price;
-            const discountBadge = plan.discount ? `<div class="discount-badge">توفير ${plan.discount}</div>` : '';
-            
-            html += `
-                <div class="plan-card ${plan.popular ? 'popular' : ''}">
-                    ${discountBadge}
-                    <div class="plan-header">
-                        <h3>${plan.name}</h3>
-                        ${plan.popular ? '<div class="popular-badge">الأكثر شيوعاً</div>' : ''}
-                    </div>
-                    
-                    <div class="plan-price">
-                        <span class="price">${plan.price}</span>
-                        <span class="currency">${plan.currency}</span>
-                        <span class="period">/${plan.period}</span>
-                    </div>
-                    
-                    ${plan.period === 'سنة' ? `
-                        <p class="monthly-equivalent">
-                            ≈ ${monthlyPrice} ${plan.currency}/شهر
-                        </p>
-                    ` : ''}
-                    
-                    <ul class="plan-features">
-                        ${plan.features.map(feature => `<li><i class="fas fa-check"></i> ${feature}</li>`).join('')}
-                    </ul>
-                    
-                    <button class="subscribe-btn" data-plan="${plan.id}">
-                        <i class="fas fa-gem"></i>
-                        <span>اشترك الآن</span>
-                    </button>
-                </div>
-            `;
-        });
-        
-        return html;
-    }
-
-    // توليد HTML لطرق الدفع
-    generatePaymentMethodsHTML() {
-        return this.paymentMethods.map(method => `
-            <div class="method-item">
-                <i class="${method.icon}"></i>
-                <span>${method.name}</span>
-            </div>
-        `).join('');
-    }
-
     // معالجة الاشتراك
-    async processSubscription(planId, modal) {
-        const plan = this.plans[planId];
+    processSubscription() {
+        // محاكاة عملية الدفع
+        this.showPaymentProcessing();
         
-        // عرض نافذة الدفع
-        const paymentModal = document.createElement('div');
-        paymentModal.className = 'payment-modal';
-        paymentModal.innerHTML = `
-            <div class="payment-content">
-                <div class="payment-header">
-                    <i class="fas fa-lock"></i>
-                    <h3>إتمام عملية الدفع</h3>
+        setTimeout(() => {
+            // بعد 2 ثانية نجاح الدفع
+            this.activatePremium();
+            
+            // إخفاء جميع النوافذ
+            document.querySelectorAll('.subscription-modal, .payment-processing').forEach(el => {
+                if (el) el.remove();
+            });
+            
+            this.game.showNotification('🎉 تم تفعيل الاشتراك المميز بنجاح!', 'success');
+        }, 2000);
+    }
+
+    // عرض شاشة معالجة الدفع
+    showPaymentProcessing() {
+        const processing = document.createElement('div');
+        processing.className = 'payment-processing';
+        processing.innerHTML = `
+            <div class="processing-content">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
                 </div>
-                
-                <div class="payment-body">
-                    <div class="payment-summary">
-                        <div class="summary-item">
-                            <span>الخطة:</span>
-                            <span>${plan.name}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>المبلغ:</span>
-                            <span>${plan.price} ${plan.currency}</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>الفترة:</span>
-                            <span>${plan.period}</span>
-                        </div>
-                        <div class="summary-item total">
-                            <span>الإجمالي:</span>
-                            <span class="total-amount">${plan.price} ${plan.currency}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="payment-form">
-                        <div class="form-group">
-                            <label for="card-number">
-                                <i class="fas fa-credit-card"></i>
-                                رقم البطاقة
-                            </label>
-                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="expiry-date">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    تاريخ الانتهاء
-                                </label>
-                                <input type="text" id="expiry-date" placeholder="MM/YY" maxlength="5">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="cvv">
-                                    <i class="fas fa-lock"></i>
-                                    رمز الأمان
-                                </label>
-                                <input type="text" id="cvv" placeholder="123" maxlength="3">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="card-name">
-                                <i class="fas fa-user"></i>
-                                اسم حامل البطاقة
-                            </label>
-                            <input type="text" id="card-name" placeholder="الاسم كما هو مدون على البطاقة">
-                        </div>
-                        
-                        <div class="form-check">
-                            <input type="checkbox" id="save-card" checked>
-                            <label for="save-card">حفظ بيانات البطاقة للمرة القادمة</label>
-                        </div>
-                    </div>
-                    
-                    <div class="payment-security">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>
+                <h3>جاري معالجة الدفع...</h3>
+                <p>يرجى الانتظار، العملية تستغرق بضع ثواني</p>
+                <div class="processing-steps">
+                    <div class="step active"><i class="fas fa-shopping-cart"></i> تأكيد الطلب</div>
+                    <div class="step"><i class="fas fa-credit-card"></i> معالجة الدفع</div>
+                    <div class="step"><i class="fas fa-check-circle"></i> التنشيط</div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(processing);
+    }
+
+    // تفعيل الاشتراك المميز
+    activatePremium() {
+        const expiry = new Date();
+        expiry.setMonth(expiry.getMonth() + 1); // شهر واحد
+        
+        const premiumData = {
+            active: true,
+            expiry: expiry.toISOString(),
+            plan: 'monthly',
+            activated: new Date().toISOString()
+        };
+        
+        localStorage.setItem('millionaire_premium', JSON.stringify(premiumData));
+        
+        this.isPremium = true;
+        this.game.state.isPremium = true;
+        
+        // تحديث الواجهة
+        this.showPremiumBadge();
+        
+        // إعادة تعيين عداد الإعلانات
+        if (this.game.adsManager) {
+            this.game.adsManager.resetAdCounter();
+        }
+    }
+
+    // التحقق من صلاحية الاشتراك
+    checkAccess() {
+        return this.isPremium;
+    }
+}
+
+// CSS الإضافي
+const subscriptionStyles = `
+    /* نافذة الاشتراك */
+    .subscription-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .subscription-content {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        position: relative;
+        animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .subscription-header {
+        margin-bottom: 25px;
+    }
+
+    .gold-crown {
+        font-size: 3.5rem;
+        color: #FFD700;
+        margin-bottom: 15px;
+        animation: crownGlow 2s infinite;
+    }
+
+    @keyframes crownGlow {
+        0%, 100% { 
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); 
+            transform: scale(1);
+        }
+        50% { 
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); 
+            transform: scale(1.1);
+        }
+    }
+
+    .subscription-content h2 {
+        color: #2d3436;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+    }
+
+    .subscription-content p {
+        color: #636e72;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    /* بطاقة الخطة */
+    .plan-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        border: 3px solid #dfe6e9;
+        position: relative;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .plan-card.popular {
+        border-color: #FFD700;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), white);
+    }
+
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: #FFD700;
+        color: #2d3436;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .plan-card h3 {
+        color: #2d3436;
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+
+    .plan-price {
+        margin: 20px 0;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .plan-price .price {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #2d3436;
+    }
+
+    .plan-price .currency {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0984e3;
+    }
+
+    .plan-price .period {
+        color: #636e72;
+        font-size: 0.9rem;
+    }
+
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+        text-align: right;
+    }
+
+    .plan-features li {
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f2f6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #2d3436;
+        font-size: 0.9rem;
+    }
+
+    .plan-features li i {
+        color: #00b894;
+    }
+
+    /* زر الاشتراك */
+    .subscribe-btn {
+        background: linear-gradient(135deg, #FFD700, #FF9500);
+        color: #2d3436;
+        border: none;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin-top: 15px;
+    }
+
+    .subscribe-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+    }
+
+    .subscribe-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* تذييل النافذة */
+    .subscription-footer {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 2px solid #dfe6e9;
+    }
+
+    .terms {
+        color: #636e72;
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .close-subscription {
+        background: #dfe6e9;
+        color: #2d3436;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .close-subscription:hover {
+        background: #b2bec3;
+    }
+
+    /* معالجة الدفع */
+    .payment-processing {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .processing-content {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .loading-spinner {
+        font-size: 3rem;
+        color: #0984e3;
+        margin-bottom: 20px;
+    }
+
+    .processing-content h3 {
+        color: #2d3436;
+        margin-bottom: 10px;
+        font-size: 1.5rem;
+    }
+
+    .processing-content p {
+        color: #636e72;
+        margin-bottom: 25px;
+    }
+
+    .processing-steps {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+        position: relative;
+    }
+
+    .processing-steps:before {
+        content: '';
+        position: absolute;
+        top: 15px;
+        left: 10%;
+        right: 10%;
+        height: 3px;
+        background: #dfe6e9;
+        z-index: 1;
+    }
+
+    .step {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: #b2bec3;
+        font-size: 0.8rem;
+    }
+
+    .step i {
+        background: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #dfe6e9;
+    }
+
+    .step.active {
+        color: #0984e3;
+    }
+
+    .step.active i {
+        border-color: #0984e3;
+        background: #0984e3;
+        color: white;
+    }
+
+    /* شارة الاشتراك في الشريط */
+    .premium-badge {
+        background: linear-gradient(45deg, #FFD700, #FF9500);
+        color: #2d3436;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-right: 10px;
+        animation: badgePulse 2s infinite;
+    }
+
+    @keyframes badgePulse {
+        0%, 100% { 
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+        }
+        50% { 
+            transform: scale(1.05);
+            box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+        }
+    }
+`;
+
+// إضافة الأنماط للصفحة
+const styleSheet = document.createElement('style');
+styleSheet.textContent = subscriptionStyles;
+document.head.appendChild(styleSheet);
