@@ -3,11 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>من سيربح المليون - الجوال</title>
+    <title>من سيربح المليون - النسخة الاحترافية</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap">
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>">
+    <style>
+        /* شاشة التحميل */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        .loading-content {
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+        
+        .loading-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: bounce 1.5s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        /* تأثيرات الوميض */
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9998;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .flash-green {
+            background: radial-gradient(circle, rgba(0, 184, 148, 0.4) 0%, transparent 70%);
+            animation: flashGreen 1s ease-out;
+        }
+        
+        .flash-red {
+            background: radial-gradient(circle, rgba(225, 112, 85, 0.4) 0%, transparent 70%);
+            animation: flashRed 1s ease-out;
+        }
+        
+        @keyframes flashGreen {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+        
+        @keyframes flashRed {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 0.8; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+        
+        /* شارة الاشتراك */
+        .premium-badge {
+            background: linear-gradient(45deg, #FFD700, #FF9500);
+            color: #2d3436;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-right: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
 </head>
 <body>
     <!-- شاشة التحميل -->
@@ -15,9 +96,12 @@
         <div class="loading-content">
             <div class="loading-icon">💰</div>
             <h2>من سيربح المليون</h2>
-            <p>جاري التحميل...</p>
+            <p>جاري تحميل اللعبة...</p>
         </div>
     </div>
+
+    <!-- تأثيرات الوميض -->
+    <div id="flash-overlay" class="flash-overlay"></div>
 
     <!-- التطبيق الرئيسي -->
     <div class="app-container">
@@ -30,6 +114,9 @@
                 <button class="nav-btn" id="sound-btn" title="الصوت">
                     <i class="fas fa-volume-up"></i>
                 </button>
+                <span id="premium-indicator" class="premium-badge" style="display: none;">
+                    <i class="fas fa-crown"></i> مميز
+                </span>
             </div>
             <div class="nav-center">
                 <h1 class="game-title">
@@ -40,6 +127,9 @@
             <div class="nav-right">
                 <button class="nav-btn" id="help-btn" title="المساعدة">
                     <i class="fas fa-question-circle"></i>
+                </button>
+                <button class="nav-btn" id="subscribe-btn" title="الاشتراك المميز">
+                    <i class="fas fa-gem"></i>
                 </button>
             </div>
         </nav>
@@ -52,7 +142,7 @@
                         <div class="money-icon">💰</div>
                         <h1 class="title-glow">من سيربح المليون</h1>
                     </div>
-                    <p class="tagline">اختبر معلوماتك واربح مليون دينار!</p>
+                    <p class="tagline">15 سؤالاً للوصول إلى المليون دينار!</p>
                 </div>
 
                 <!-- ملف اللاعب -->
@@ -62,11 +152,11 @@
                         <div class="input-group">
                             <input type="text" id="player-name" placeholder="اسم اللاعب" maxlength="20" value="المتنافس">
                             <select id="player-avatar" class="avatar-select">
-                                <option value="👨‍💼">رجل أعمال</option>
-                                <option value="👩‍💼">سيدة أعمال</option>
-                                <option value="👨‍🎓">طالب</option>
-                                <option value="👩‍🎓">طالبة</option>
-                                <option value="👑">ملك</option>
+                                <option value="👑">👑 ملك</option>
+                                <option value="👨‍💼">👨‍💼 رجل أعمال</option>
+                                <option value="👩‍💼">👩‍💼 سيدة أعمال</option>
+                                <option value="🎓">🎓 خريج</option>
+                                <option value="🦸">🦸 بطل</option>
                             </select>
                         </div>
                     </div>
@@ -89,11 +179,11 @@
                                     <h4>سهل</h4>
                                     <p>مناسب للمبتدئين</p>
                                     <div class="diff-stats">
-                                        <span><i class="fas fa-clock"></i> 30 ثانية</span>
+                                        <span><i class="fas fa-clock"></i> 45 ثانية</span>
                                         <span><i class="fas fa-life-ring"></i> 3 أدوات</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">مبتدئ</div>
+                                <div class="diff-badge">سؤال 1-5</div>
                             </div>
                             <div class="difficulty-option" data-level="medium">
                                 <div class="diff-icon">😐</div>
@@ -101,11 +191,11 @@
                                     <h4>متوسط</h4>
                                     <p>مستوى متوسط الصعوبة</p>
                                     <div class="diff-stats">
-                                        <span><i class="fas fa-clock"></i> 20 ثانية</span>
+                                        <span><i class="fas fa-clock"></i> 30 ثانية</span>
                                         <span><i class="fas fa-life-ring"></i> 2 أدوات</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">متوسط</div>
+                                <div class="diff-badge">سؤال 6-10</div>
                             </div>
                             <div class="difficulty-option" data-level="hard">
                                 <div class="diff-icon">😓</div>
@@ -113,11 +203,11 @@
                                     <h4>صعب</h4>
                                     <p>تحدي للخبراء</p>
                                     <div class="diff-stats">
-                                        <span><i class="fas fa-clock"></i> 15 ثانية</span>
+                                        <span><i class="fas fa-clock"></i> 20 ثانية</span>
                                         <span><i class="fas fa-life-ring"></i> 1 أداة</span>
                                     </div>
                                 </div>
-                                <div class="diff-badge">خبير</div>
+                                <div class="diff-badge">سؤال 11-15</div>
                             </div>
                         </div>
                     </div>
@@ -166,17 +256,21 @@
 
         <!-- شاشة اللعبة -->
         <section id="game-screen" class="screen">
+            <!-- شجرة الجوائز الجانبية -->
+            <div class="prize-track">
+                <div class="prize-track-inner">
+                    <!-- سيتم تعبئتها بالجافاسكريبت -->
+                </div>
+            </div>
+
             <!-- رأس اللعبة -->
             <div class="game-header">
                 <div class="player-info-card">
-                    <div class="player-avatar" id="current-avatar">👨‍💼</div>
+                    <div class="player-avatar" id="current-avatar">👑</div>
                     <div class="player-details">
                         <h3 id="current-player">المتنافس</h3>
                         <div class="player-level">
-                            <span class="level-badge" id="player-level">مستوى 1</span>
-                            <div class="xp-bar">
-                                <div class="xp-progress" id="xp-progress"></div>
-                            </div>
+                            <span class="level-badge" id="player-level">المستوى 1</span>
                         </div>
                     </div>
                 </div>
@@ -184,7 +278,7 @@
                     <div class="stat-box timer-box">
                         <i class="fas fa-hourglass-half"></i>
                         <div class="stat-content">
-                            <div class="stat-value" id="time-left">30</div>
+                            <div class="stat-value" id="time-left">45</div>
                             <div class="stat-label">ثانية</div>
                         </div>
                     </div>
@@ -210,15 +304,14 @@
                 <div class="question-header">
                     <div class="question-meta">
                         <span class="category-badge" id="current-category">ثقافة</span>
-                        <span class="difficulty-badge" id="current-difficulty">سهل</span>
+                        <span class="question-value" id="question-value">100 دينار</span>
                     </div>
                     <div class="question-number">
-                        <span id="q-number">1</span>/10
+                        <span id="q-number">1</span>/15
                     </div>
                 </div>
 
                 <div class="question-card">
-                    <div class="question-value" id="question-value">100 دينار</div>
                     <div class="question-text" id="question-text">ما هي عاصمة فرنسا؟</div>
                     <div class="question-hint" id="question-hint" style="display: none;">
                         <i class="fas fa-lightbulb"></i>
@@ -229,7 +322,7 @@
                 <!-- منطقة الإجابات -->
                 <div class="answers-area">
                     <div class="answers-grid" id="answers-container">
-                        <!-- يتم تعبئتها بالجافاسكريبت -->
+                        <!-- سيتم تعبئتها بالجافاسكريبت -->
                     </div>
                 </div>
 
@@ -237,18 +330,32 @@
                 <div class="lifelines-area">
                     <h3><i class="fas fa-life-ring"></i> أدوات المساعدة</h3>
                     <div class="lifelines-grid">
-                        <button class="lifeline-btn" id="lifeline-5050">
+                        <button class="lifeline-btn" id="lifeline-5050" data-lifeline="5050">
                             <div class="lifeline-icon">50:50</div>
                             <div class="lifeline-info">
-                                <div class="lifeline-name">نصف إجابات</div>
+                                <div class="lifeline-name">حذف إجابتين</div>
                                 <div class="lifeline-desc">يحذف إجابتين خاطئتين</div>
                             </div>
                         </button>
-                        <button class="lifeline-btn" id="lifeline-hint">
-                            <div class="lifeline-icon">💡</div>
+                        <button class="lifeline-btn" id="lifeline-call" data-lifeline="call">
+                            <div class="lifeline-icon">📞</div>
                             <div class="lifeline-info">
-                                <div class="lifeline-name">تلميح</div>
-                                <div class="lifeline-desc">يعطي تلميح للسؤال</div>
+                                <div class="lifeline-name">اتصال بصديق</div>
+                                <div class="lifeline-desc">استشارة خبير</div>
+                            </div>
+                        </button>
+                        <button class="lifeline-btn" id="lifeline-audience" data-lifeline="audience">
+                            <div class="lifeline-icon">👥</div>
+                            <div class="lifeline-info">
+                                <div class="lifeline-name">رأي الجمهور</div>
+                                <div class="lifeline-desc">تصويت المشاهدين</div>
+                            </div>
+                        </button>
+                        <button class="lifeline-btn" id="lifeline-skip" data-lifeline="skip">
+                            <div class="lifeline-icon">⏭️</div>
+                            <div class="lifeline-info">
+                                <div class="lifeline-name">تخطي السؤال</div>
+                                <div class="lifeline-desc">شاهد إعلان لتخطي</div>
                             </div>
                         </button>
                     </div>
@@ -260,7 +367,7 @@
                         <i class="fas fa-sign-out-alt"></i> انسحب
                     </button>
                     <div class="game-info">
-                        <span id="questions-left">9 أسئلة متبقية</span>
+                        <span id="questions-left">14 أسئلة متبقية</span>
                     </div>
                     <button class="control-btn success" id="next-btn" disabled>
                         <i class="fas fa-arrow-left"></i> التالي
@@ -313,6 +420,14 @@
                             </div>
                         </div>
 
+                        <!-- أعلى النتائج -->
+                        <div class="leaderboard-section">
+                            <h3><i class="fas fa-trophy"></i> أعلى النتائج</h3>
+                            <div class="leaderboard" id="leaderboard">
+                                <!-- سيتم تعبئتها بالجافاسكريبت -->
+                            </div>
+                        </div>
+
                         <!-- أزرار الإجراءات -->
                         <div class="results-actions">
                             <button class="action-btn primary" id="play-again-btn">
@@ -349,13 +464,25 @@
     </audio>
 
     <!-- السكريبتات -->
+    <script src="ads.js"></script>
+    <script src="subscription.js"></script>
     <script src="game.js"></script>
     <script>
         // إخفاء شاشة التحميل
         window.addEventListener('load', function() {
             setTimeout(function() {
-                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
             }, 1000);
+        });
+
+        // تهيئة
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 من سيربح المليون - النسخة الاحترافية');
+            console.log('📊 نظام 15 سؤالاً كاملاً');
+            console.log('✨ مع تأثيرات الوميض ونظام الإعلانات');
         });
     </script>
 </body>
