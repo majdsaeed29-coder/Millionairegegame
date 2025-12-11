@@ -1879,3 +1879,62 @@ input:checked + .slider:before {
     animation-duration: 0.3s !important;
     transition-duration: 0.3s !important;
 }
+/* ===== إصلاحات نهائية ===== */
+#app-container {
+    position: relative;
+    min-height: 100vh;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+#loading-screen {
+    background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+    z-index: 1000;
+}
+
+/* ضمان ظهور العناصر */
+#auth-screen,
+#main-menu-screen,
+#categories-screen,
+#game-screen,
+#results-screen {
+    display: none;
+    opacity: 1;
+}
+
+/* عند التفعيل */
+#auth-screen.active,
+#main-menu-screen.active,
+#categories-screen.active,
+#game-screen.active,
+#results-screen.active {
+    display: flex;
+}
+
+/* إزالة أي تأثيرات معقدة */
+* {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ضمان عمل الأزرار */
+button {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* تحسين الأداء */
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
