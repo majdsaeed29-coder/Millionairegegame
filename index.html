@@ -2,26 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="ميليونير الذهبية - لعبة مسابقة ذكاء عربية للفوز بمليون دولار! تحدى نفسك وأثبت ذكاءك مع 15 سؤالاً بمستويات صعوبة مختلفة.">
-    <meta name="keywords" content="لعبة, مسابقة, ذكاء, عربية, مليون, دولار, أسئلة, ثقافة, معرفة, تحدي">
-    <meta name="author" content="فريق تطوير الألعاب العربية">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="لعبة المليونير الذهبية - اختر ذكاءك وفز بمليون دولار">
     <meta name="theme-color" content="#D4AF37">
-    
-    <title>ميليونير الذهبية 🏆 - لعبة المليون دولار</title>
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="ميليونير الذهبية 🏆">
-    <meta property="og:description" content="تحدى نفسك للفوز بمليون دولار في لعبة الذكاء العربية الأكثر إثارة!">
-    <meta property="og:image" content="/icons/icon-512x512.png">
-    <meta property="og:url" content="https://millionaire-game.com">
-    <meta property="og:type" content="website">
-    
-    <!-- Twitter Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="ميليونير الذهبية 🏆">
-    <meta name="twitter:description" content="لعبة مسابقة ذكاء للفوز بمليون دولار!">
-    <meta name="twitter:image" content="/icons/icon-512x512.png">
+    <title>المليونير الذهبية 🏆</title>
     
     <!-- الخطوط -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,687 +15,148 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- التنسيقات -->
-    <link rel="stylesheet" href="style.css">
+    <!-- التنسيقات الرئيسية -->
+    <link rel="stylesheet" href="css/style.css">
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>">
-    
-    <!-- iOS Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="ميليونير">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
-    
-    <!-- Microsoft Meta Tags -->
-    <meta name="msapplication-TileColor" content="#D4AF37">
-    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png">
+    <link rel="icon" href="assets/icons/icon-192x192.png">
     
     <style>
-        /* تحسينات أداء أولية */
+        /* تحميل فوري */
         * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        /* منع التحديد */
-        .no-select {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
         
-        /* تحسين التحميل */
-        .preload * {
-            transition: none !important;
-            animation: none !important;
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        
+        .preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 5px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            border-top-color: #D4AF37;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .preloader-text {
+            font-size: 1.5rem;
+            color: #FFD700;
+            margin-top: 20px;
+        }
+        
+        .skip-loading {
+            margin-top: 30px;
+            padding: 10px 25px;
+            background: #D4AF37;
+            color: black;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
         }
     </style>
 </head>
-<body class="no-select preload">
-    
-    <!-- ===== حاوية التطبيق الرئيسية ===== -->
-    <div id="app-container" class="app-container">
-        
-        <!-- ===== شاشة التحميل ===== -->
-        <div id="loading-screen" class="screen loading-screen active">
-            <div class="loading-logo">🏆</div>
-            <div class="loading-text">ميليونير الذهبية</div>
-            <div class="loading-subtext">جاري تحميل التحدي الذهبي...</div>
-            <div class="loading-progress">
-                <div class="loading-progress-bar"></div>
-            </div>
-            <div class="loading-tip">
-                <i class="fas fa-lightbulb"></i>
-                <span>هل تعلم؟ يمكنك كسب مليون دولار بالإجابات الصحيحة!</span>
-            </div>
-        </div>
-        
-        <!-- ===== شاشة المصادقة ===== -->
-        <div id="auth-screen" class="screen auth-screen">
-            <div class="auth-container">
-                <div class="auth-header">
-                    <h1>ميليونير الذهبية</h1>
-                    <p>تحدى ذكاءك للفوز بمليون دولار! 💰</p>
-                </div>
-                
-                <div class="auth-tabs">
-                    <button id="login-tab" class="auth-tab active">تسجيل الدخول</button>
-                    <button id="register-tab" class="auth-tab">إنشاء حساب</button>
-                </div>
-                
-                <form id="login-form" class="auth-form active">
-                    <div class="form-group">
-                        <label for="username-input">اسم المستخدم</label>
-                        <input type="text" id="username-input" class="form-input" placeholder="أدخل اسم المستخدم" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password-input">كلمة السر</label>
-                        <input type="password" id="password-input" class="form-input" placeholder="أدخل كلمة السر" required>
-                    </div>
-                    
-                    <button type="submit" id="login-btn" class="auth-btn">
-                        <i class="fas fa-sign-in-alt"></i>
-                        تسجيل الدخول
-                    </button>
-                </form>
-                
-                <form id="register-form" class="auth-form">
-                    <div class="form-group">
-                        <label for="register-username">اسم المستخدم</label>
-                        <input type="text" id="register-username" class="form-input" placeholder="اختر اسم مستخدم فريد" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="register-password">كلمة السر</label>
-                        <input type="password" id="register-password" class="form-input" placeholder="أدخل كلمة سر قوية" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="register-email">البريد الإلكتروني (اختياري)</label>
-                        <input type="email" id="register-email" class="form-input" placeholder="example@email.com">
-                    </div>
-                    
-                    <button type="submit" id="register-btn" class="auth-btn">
-                        <i class="fas fa-user-plus"></i>
-                        إنشاء حساب
-                    </button>
-                </form>
-                
-                <div class="auth-footer">
-                    <p>بإنشاء حساب، فإنك توافق على <a href="#" class="auth-link">شروط الاستخدام</a></p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- ===== القائمة الرئيسية ===== -->
-        <div id="main-menu-screen" class="screen main-menu-screen">
-            <div class="menu-header">
-                <h1 class="user-welcome" id="user-welcome">مرحباً بالمليونير!</h1>
-                <div class="user-stats">
-                    <div class="stat-item">
-                        <div class="stat-value" id="user-balance">0 $</div>
-                        <div class="stat-label">رصيدك</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="user-level">1</div>
-                        <div class="stat-label">المستوى</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="user-xp">0</div>
-                        <div class="stat-label">نقاط الخبرة</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="menu-grid">
-                <div class="menu-card primary" id="play-btn">
-                    <div class="menu-icon">🎮</div>
-                    <h3>بدء لعبة جديدة</h3>
-                    <p>ابدأ تحدي المليون دولار مع 15 سؤالاً في مختلف المجالات</p>
-                    <div class="menu-hint">
-                        <i class="fas fa-bolt"></i>
-                        <span>اضغط Enter للبدء السريع</span>
-                    </div>
-                </div>
-                
-                <div class="menu-card" id="categories-btn">
-                    <div class="menu-icon">📚</div>
-                    <h3>التصنيفات</h3>
-                    <p>اختر مواضيع الأسئلة التي تريد التحدي فيها</p>
-                </div>
-                
-                <div class="menu-card" id="leaderboard-btn">
-                    <div class="menu-icon">🏆</div>
-                    <h3>لوحة المتصدرين</h3>
-                    <p>شاهد أفضل اللاعبين وتنافس على المركز الأول</p>
-                </div>
-                
-                <div class="menu-card" id="settings-btn">
-                    <div class="menu-icon">⚙️</div>
-                    <h3>الإعدادات</h3>
-                    <p>تخصيص الصوت، المظهر، وإعدادات اللعبة</p>
-                </div>
-                
-                <div class="menu-card" id="how-to-play-btn">
-                    <div class="menu-icon">❓</div>
-                    <h3>كيفية اللعب</h3>
-                    <p>تعلم قواعد اللعبة واستراتيجيات الفوز</p>
-                </div>
-                
-                <div class="menu-card" id="logout-btn">
-                    <div class="menu-icon">🚪</div>
-                    <h3>تسجيل الخروج</h3>
-                    <p>الخروج من حسابك والعودة لشاشة البداية</p>
-                </div>
-            </div>
-            
-            <div class="menu-footer">
-                <p class="version">الإصدار 4.0.0 | ميليونير الذهبية © 2024</p>
-            </div>
-        </div>
-        
-        <!-- ===== شاشة اختيار التصنيفات ===== -->
-        <div id="categories-screen" class="screen categories-screen">
-            <div class="screen-title">
-                <h2><i class="fas fa-cogs"></i> إعدادات اللعبة</h2>
-                <p>اختر التصنيفات والمستوى الذي يناسبك</p>
-            </div>
-            
-            <div class="categories-section">
-                <h3 class="section-title">
-                    <i class="fas fa-layer-group"></i>
-                    اختر التصنيفات
-                </h3>
-                <div class="categories-grid" id="categories-container">
-                    <!-- سيتم تحميل التصنيفات هنا -->
-                </div>
-            </div>
-            
-            <div class="difficulty-section">
-                <h3 class="section-title">
-                    <i class="fas fa-chart-line"></i>
-                    مستوى الصعوبة
-                </h3>
-                <div class="difficulty-grid" id="difficulty-container">
-                    <!-- سيتم تحميل مستويات الصعوبة هنا -->
-                </div>
-            </div>
-            
-            <div class="game-settings">
-                <h3 class="section-title">
-                    <i class="fas fa-sliders-h"></i>
-                    إعدادات إضافية
-                </h3>
-                <div class="setting-item">
-                    <div class="setting-label">
-                        <i class="fas fa-clock"></i>
-                        المؤقت
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="timer-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-item">
-                    <div class="setting-label">
-                        <i class="fas fa-music"></i>
-                        الموسيقى الخلفية
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="music-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                
-                <div class="setting-item">
-                    <div class="setting-label">
-                        <i class="fas fa-vibrate"></i>
-                        الاهتزاز
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="vibration-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-            
-            <div class="game-actions">
-                <button class="btn btn-secondary" id="back-to-menu-btn" data-action="back-to-menu">
-                    <i class="fas fa-arrow-right"></i>
-                    العودة
-                </button>
-                
-                <button class="btn btn-primary" id="start-game-btn">
-                    <i class="fas fa-play-circle"></i>
-                    بدء اللعبة
-                </button>
-            </div>
-        </div>
-        
-        <!-- ===== شاشة اللعبة ===== -->
-        <div id="game-screen" class="screen game-screen">
-            <div class="game-header">
-                <div class="player-info">
-                    <div class="player-avatar" id="player-avatar">👤</div>
-                    <div class="player-details">
-                        <h3 id="player-name">المتنافس</h3>
-                        <p id="player-level">المستوى 1</p>
-                    </div>
-                </div>
-                
-                <div class="game-stats">
-                    <div class="stat-box timer-box" id="timer-box">
-                        <div class="stat-label">الوقت</div>
-                        <div class="stat-value" id="timer-display">60</div>
-                    </div>
-                    
-                    <div class="stat-box score-box">
-                        <div class="stat-label">الرصيد</div>
-                        <div class="stat-value" id="score-display">0 $</div>
-                    </div>
-                    
-                    <div class="stat-box correct-box">
-                        <div class="stat-label">الصحيحة</div>
-                        <div class="stat-value" id="correct-display">0</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="question-area">
-                <div class="question-meta">
-                    <div class="question-category" id="question-category">ثقافة عامة</div>
-                    <div class="question-number">
-                        السؤال
-                        <span class="current" id="current-question">1</span>
-                        من 15
-                    </div>
-                    <div class="question-prize" id="question-prize">100 $</div>
-                </div>
-                
-                <div class="question-text" id="question-text">
-                    جاري تحميل السؤال...
-                </div>
-                
-                <div class="answers-grid" id="answers-container">
-                    <!-- سيتم تحميل الإجابات هنا -->
-                </div>
-                
-                <div class="hint-box" id="hint-box" style="display: none;">
-                    <div class="hint-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <div class="hint-text" id="hint-text"></div>
-                </div>
-            </div>
-            
-            <div class="lifelines-section">
-                <h3 class="section-title">
-                    <i class="fas fa-life-ring"></i>
-                    أدوات المساعدة
-                </h3>
-                <div class="lifelines-grid" id="lifelines-container">
-                    <button class="lifeline-btn" id="lifeline-50-50" data-lifeline="50_50">
-                        <div class="lifeline-icon">50:50</div>
-                        <div class="lifeline-name">حذف إجابتين</div>
-                        <div class="lifeline-desc">إزالة إجابتين خاطئتين</div>
-                    </button>
-                    
-                    <button class="lifeline-btn" id="lifeline-phone" data-lifeline="PHONE_FRIEND">
-                        <div class="lifeline-icon">📞</div>
-                        <div class="lifeline-name">اتصال بصديق</div>
-                        <div class="lifeline-desc">استشارة خبير</div>
-                    </button>
-                    
-                    <button class="lifeline-btn" id="lifeline-audience" data-lifeline="AUDIENCE">
-                        <div class="lifeline-icon">👥</div>
-                        <div class="lifeline-name">تصويت الجمهور</div>
-                        <div class="lifeline-desc">رأي المشاهدين</div>
-                    </button>
-                    
-                    <button class="lifeline-btn" id="lifeline-skip" data-lifeline="SKIP_AD">
-                        <div class="lifeline-icon">📺</div>
-                        <div class="lifeline-name">تخطي السؤال</div>
-                        <div class="lifeline-desc">مشاهدة إعلان</div>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="game-controls">
-                <button class="control-btn btn-danger" id="quit-game-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    إنهاء اللعبة
-                </button>
-                
-                <div class="game-progress">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill" style="width: 6.67%;"></div>
-                    </div>
-                    <div class="progress-text" id="progress-text">1/15</div>
-                </div>
-                
-                <button class="control-btn next-btn" id="next-question-btn" disabled>
-                    <i class="fas fa-arrow-left"></i>
-                    التالي
-                </button>
-            </div>
-            
-            <!-- سلم الجوائز (للشاشات الكبيرة فقط) -->
-            <div class="prize-ladder-container">
-                <div class="prize-ladder-header">
-                    <h4><i class="fas fa-trophy"></i> سلم الجوائز</h4>
-                </div>
-                <div class="prize-ladder" id="prize-ladder">
-                    <!-- سيتم تحميل سلم الجوائز هنا -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- ===== شاشة النتائج ===== -->
-        <div id="results-screen" class="screen results-screen">
-            <div class="results-container">
-                <div class="result-icon" id="result-icon">🏆</div>
-                
-                <h1 class="result-title" id="result-title">مبروك! لقد فزت!</h1>
-                <p class="result-subtitle" id="result-subtitle">لعبة رائعة وأداء ممتاز!</p>
-                
-                <div class="final-prize">
-                    <div class="prize-label">المبلغ النهائي</div>
-                    <div class="prize-amount" id="final-score">0 $</div>
-                    <div class="prize-conversion">~0 دولار</div>
-                </div>
-                
-                <div class="results-stats">
-                    <div class="result-stat">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-value" id="correct-answers">0/15</div>
-                        <div class="stat-label">الإجابات الصحيحة</div>
-                    </div>
-                    
-                    <div class="result-stat">
-                        <div class="stat-icon">⏱️</div>
-                        <div class="stat-value" id="total-time">0:00</div>
-                        <div class="stat-label">الوقت الكلي</div>
-                    </div>
-                    
-                    <div class="result-stat">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-value" id="accuracy">0%</div>
-                        <div class="stat-label">الدقة</div>
-                    </div>
-                    
-                    <div class="result-stat">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-value" id="xp-earned">0</div>
-                        <div class="stat-label">نقاط الخبرة</div>
-                    </div>
-                </div>
-                
-                <div class="results-actions">
-                    <button class="btn btn-primary" id="play-again-btn">
-                        <i class="fas fa-redo"></i>
-                        لعب مرة أخرى
-                    </button>
-                    
-                    <button class="btn btn-secondary" id="share-results-btn">
-                        <i class="fas fa-share-alt"></i>
-                        مشاركة النتيجة
-                    </button>
-                    
-                    <button class="btn btn-outline" id="back-to-menu-results" data-action="back-to-menu">
-                        <i class="fas fa-home"></i>
-                        القائمة الرئيسية
-                    </button>
-                </div>
-            </div>
-        </div>
+<body>
+    <!-- شاشة التحميل -->
+    <div id="preloader" class="preloader">
+        <div class="loader"></div>
+        <div class="preloader-text">جاري تحميل المليونير الذهبية...</div>
+        <button id="skipLoading" class="skip-loading">تخطي التحميل</button>
     </div>
     
-    <!-- ===== حاوية الإشعارات ===== -->
-    <div id="notification-container" class="notification-container"></div>
+    <!-- حاوية التطبيق -->
+    <div id="app" style="display: none;">
+        <!-- سيتم تحميل المحتوى هنا -->
+    </div>
     
-    <!-- ===== حاوية النوافذ المنبثقة ===== -->
-    <div id="modal-container" class="modal-container"></div>
+    <!-- الملفات الرئيسية -->
+    <script src="js/config.js"></script>
+    <script src="js/auth-system.js"></script>
+    <script src="js/question-manager.js"></script>
+    <script src="js/game-engine.js"></script>
+    <script src="js/ui-manager.js"></script>
+    <script src="js/app.js"></script>
     
-    <!-- ===== الأصوات ===== -->
-    <audio id="sound-click" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-correct" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-wrong" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-win" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-timer" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sound-levelup" preload="auto">
-        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3" type="audio/mpeg">
-    </audio>
+    <!-- لوحة الإدارة -->
+    <script src="js/admin-panel.js"></script>
     
-    <!-- ===== ملفات JavaScript ===== -->
-    <script src="config.js"></script>
-    <script src="auth-system.js"></script>
-    <script src="question-manager.js"></script>
-    <script src="game-engine.js"></script>
-    <script src="ui-manager.js"></script>
-    <script src="app.js"></script>
-    
-    <!-- ===== تهيئة بعد تحميل الصفحة ===== -->
+    <!-- تهيئة مباشرة -->
     <script>
-        // إزالة فئة preload بعد التحميل
-        window.addEventListener('load', () => {
-            document.body.classList.remove('preload');
-        });
-        
-        // منع قائمة السياق (الزر الأيمن)
-        document.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        // منع اختصارات النسخ/اللصق/القص
-        document.addEventListener('copy', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('cut', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        document.addEventListener('paste', (e) => {
-            e.preventDefault();
-            return false;
-        });
-        
-        // تحسين الأداء على الجوال
-        document.addEventListener('touchstart', () => {}, { passive: true });
-        
-        // اكتشاف وضع الاتصال
-        window.addEventListener('online', () => {
-            if (window.gameApp?.uiManager) {
-                window.gameApp.uiManager.showNotification('تم استعادة الاتصال بالإنترنت! ✅', 'success');
-            }
-        });
-        
-        window.addEventListener('offline', () => {
-            if (window.gameApp?.uiManager) {
-                window.gameApp.uiManager.showNotification('فقدت الاتصال بالإنترنت! ⚠️', 'warning');
-            }
-        });
-        
-        // ترقية PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (window.gameApp?.uiManager) {
-                    window.gameApp.uiManager.showNotification(
-                        'تم تحديث التطبيق! يرجى إعادة التحميل للحصول على أحدث الميزات.',
-                        'info'
-                    );
+        // تهيئة فورية
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ الصفحة محملة، بدء التطبيق...');
+            
+            // إخفاء التحميل بعد 2 ثانية
+            setTimeout(() => {
+                document.getElementById('preloader').classList.add('hidden');
+                document.getElementById('app').style.display = 'block';
+                
+                try {
+                    window.gameApp = new MillionaireApp();
+                } catch (error) {
+                    console.error('❌ خطأ في بدء التطبيق:', error);
+                    alert('خطأ في بدء التطبيق. يرجى تحديث الصفحة.');
+                    window.location.reload();
                 }
+            }, 2000);
+            
+            // زر تخطي التحميل
+            document.getElementById('skipLoading').addEventListener('click', function() {
+                document.getElementById('preloader').classList.add('hidden');
+                document.getElementById('app').style.display = 'block';
+                window.gameApp = new MillionaireApp();
+            });
+            
+            // حل نهائي: إعادة التحميل التلقائي عند الخطأ
+            window.addEventListener('error', function(e) {
+                console.error('❌ خطأ في الصفحة:', e.error);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            });
+        });
+        
+        // PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js');
             });
         }
     </script>
-    <!-- ===== تحميل مباشر مع تخطي أي أخطاء ===== -->
-<script>
-    // حل نهائي: إذا فشل أي شيء، هذا الكود سيتولى التحكم
-    (function() {
-        console.log('🛡️ بدء الحماية المباشرة...');
-        
-        // بعد 3 ثوان، إذا كانت شاشة التحميل ما زالت ظاهرة
-        setTimeout(function() {
-            const loadingScreen = document.getElementById('loading-screen');
-            const authScreen = document.getElementById('auth-screen');
-            
-            if (loadingScreen && loadingScreen.style.display !== 'none') {
-                console.log('⚠️ اكتشاف شاشة تحميل عالقة، جاري التخطي...');
-                
-                // طريقة 1: تخطي مباشر
-                loadingScreen.style.display = 'none';
-                loadingScreen.classList.remove('active');
-                
-                if (authScreen) {
-                    authScreen.style.display = 'flex';
-                    setTimeout(function() {
-                        authScreen.classList.add('active');
-                    }, 10);
-                }
-                
-                // إظهار رسالة
-                alert('✅ تم تحميل اللعبة بنجاح! يمكنك البدء الآن.');
-            }
-        }, 3000);
-        
-        // حل بديل: زر تخطي يدوي
-        const manualSkipBtn = document.createElement('button');
-        manualSkipBtn.innerHTML = '⏩ تخطي التحميل';
-        manualSkipBtn.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-family: inherit;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 9999;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-        `;
-        
-        manualSkipBtn.addEventListener('click', function() {
-            const loadingScreen = document.getElementById('loading-screen');
-            const authScreen = document.getElementById('auth-screen');
-            
-            if (loadingScreen) {
-                loadingScreen.style.display = 'none';
-                loadingScreen.classList.remove('active');
-            }
-            
-            if (authScreen) {
-                authScreen.style.display = 'flex';
-                setTimeout(function() {
-                    authScreen.classList.add('active');
-                }, 10);
-            }
-            
-            manualSkipBtn.style.display = 'none';
-            alert('تم تخطي التحميل يدوياً! ✅');
-        });
-        
-        // إضافة الزر بعد 5 ثواني
-        setTimeout(function() {
-            const loadingScreen = document.getElementById('loading-screen');
-            if (loadingScreen && loadingScreen.style.display !== 'none') {
-                document.body.appendChild(manualSkipBtn);
-            }
-        }, 5000);
-        
-    })();
-</script>
-    <!-- ===== حل نهائي مضمون ===== -->
-<script>
-    // هذا الكود سيضمن عمل اللعبة بأي طريقة
-    (function() {
-        console.log('🛡️ تفعيل الحماية النهائية...');
-        
-        // بعد تحميل الصفحة
-        window.addEventListener('load', function() {
-            console.log('✅ الصفحة محملة بالكامل');
-            
-            // بعد 2 ثانية، تأكد من إخفاء شاشة التحميل
-            setTimeout(function() {
-                const loadingScreen = document.getElementById('loading-screen');
-                if (loadingScreen) {
-                    loadingScreen.style.display = 'none';
-                }
-                
-                // إذا لم تظهر أي شاشة، إظهار شاشة الدخول
-                const anyScreenVisible = 
-                    document.getElementById('auth-screen')?.style.display === 'flex' ||
-                    document.getElementById('main-menu-screen')?.style.display === 'flex' ||
-                    document.getElementById('categories-screen')?.style.display === 'flex';
-                
-                if (!anyScreenVisible) {
-                    const authScreen = document.getElementById('auth-screen');
-                    if (authScreen) {
-                        authScreen.style.display = 'flex';
-                    }
-                }
-                
-            }, 2000);
-        });
-        
-        // إذا حدث خطأ، إظهار واجهة بديلة
-        window.addEventListener('error', function(e) {
-            console.error('❌ خطأ في الصفحة:', e.error);
-            
-            // محاولة إصلاح تلقائي
-            setTimeout(function() {
-                document.body.innerHTML = `
-                    <div style="
-                        position: fixed;
-                        top: 0; left: 0;
-                        width: 100%; height: 100%;
-                        background: #1a1a2e;
-                        color: white;
-                        display: flex;
-                        flex-direction: column;
-                        align-items: center;
-                        justify-content: center;
-                        text-align: center;
-                        padding: 20px;
-                    ">
-                        <h1 style="color:#FFD700">🎮 ميليونير الذهبية</h1>
-                        <p style="margin: 20px 0;">جاري تحميل اللعبة المباشرة...</p>
-                        <div style="width: 100px; height: 4px; background: #333; margin: 20px;">
-                            <div style="width: 70%; height: 100%; background: #D4AF37;"></div>
-                        </div>
-                    </div>
-                `;
-                
-                // بعد 1 ثانية، تحميل اللعبة المباشرة
-                setTimeout(function() {
-                    window.location.reload();
-                }, 1000);
-            }, 1000);
-        });
-        
-    })();
-</script>
 </body>
 </html>
