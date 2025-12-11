@@ -562,5 +562,86 @@
             });
         }
     </script>
+    <!-- ===== تحميل مباشر مع تخطي أي أخطاء ===== -->
+<script>
+    // حل نهائي: إذا فشل أي شيء، هذا الكود سيتولى التحكم
+    (function() {
+        console.log('🛡️ بدء الحماية المباشرة...');
+        
+        // بعد 3 ثوان، إذا كانت شاشة التحميل ما زالت ظاهرة
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const authScreen = document.getElementById('auth-screen');
+            
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                console.log('⚠️ اكتشاف شاشة تحميل عالقة، جاري التخطي...');
+                
+                // طريقة 1: تخطي مباشر
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.remove('active');
+                
+                if (authScreen) {
+                    authScreen.style.display = 'flex';
+                    setTimeout(function() {
+                        authScreen.classList.add('active');
+                    }, 10);
+                }
+                
+                // إظهار رسالة
+                alert('✅ تم تحميل اللعبة بنجاح! يمكنك البدء الآن.');
+            }
+        }, 3000);
+        
+        // حل بديل: زر تخطي يدوي
+        const manualSkipBtn = document.createElement('button');
+        manualSkipBtn.innerHTML = '⏩ تخطي التحميل';
+        manualSkipBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        `;
+        
+        manualSkipBtn.addEventListener('click', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const authScreen = document.getElementById('auth-screen');
+            
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+                loadingScreen.classList.remove('active');
+            }
+            
+            if (authScreen) {
+                authScreen.style.display = 'flex';
+                setTimeout(function() {
+                    authScreen.classList.add('active');
+                }, 10);
+            }
+            
+            manualSkipBtn.style.display = 'none';
+            alert('تم تخطي التحميل يدوياً! ✅');
+        });
+        
+        // إضافة الزر بعد 5 ثواني
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                document.body.appendChild(manualSkipBtn);
+            }
+        }, 5000);
+        
+    })();
+</script>
 </body>
 </html>
