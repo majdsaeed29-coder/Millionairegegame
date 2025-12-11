@@ -1,13 +1,12 @@
 /**
- * نظام إدارة الأسئلة - ميليونير الذهبية
- * قاعدة بيانات الأسئلة مع جميع التصنيفات
+ * ❓ مدير الأسئلة - المليونير الذهبية
+ * نظام إدارة كامل للأسئلة مع دعم متعدد التصنيفات والصعوبات
  */
 
 class QuestionManager {
     constructor() {
         this.categories = {};
         this.usedQuestions = new Set();
-        this.questionStats = {};
         this.initializeCategories();
         this.loadQuestions();
     }
@@ -29,192 +28,89 @@ class QuestionManager {
     }
     
     /**
-     * تحميل الأسئلة (قاعدة بيانات افتراضية)
+     * تحميل الأسئلة
      */
     loadQuestions() {
-        // --- أسئلة الثقافة العامة ---
+        // محاولة تحميل الأسئلة المحفوظة
+        try {
+            const savedQuestions = localStorage.getItem(GameConfig.STORAGE_KEYS.QUESTIONS);
+            if (savedQuestions) {
+                const parsed = JSON.parse(savedQuestions);
+                this.categories = parsed.categories || this.categories;
+                console.log('✅ تم تحميل الأسئلة المحفوظة');
+                return;
+            }
+        } catch (error) {
+            console.error('❌ خطأ في تحميل الأسئلة:', error);
+        }
+        
+        // إذا لم توجد أسئلة محفوظة، أنشئ الأسئلة الافتراضية
+        this.createDefaultQuestions();
+    }
+    
+    /**
+     * إنشاء الأسئلة الافتراضية
+     */
+    createDefaultQuestions() {
+        // أسئلة الثقافة العامة
         this.addQuestions('general', 'easy', [
             {
                 question: 'ما هي عاصمة فرنسا؟',
-                answers: ['لندن', 'برلين', 'باريس', 'روما'],
+                answers: ['روما', 'لندن', 'باريس', 'برلين'],
                 correct: 2,
-                hint: 'تقع في أوروبا وتشتهر ببرج إيفل',
+                hint: 'تشتهر ببرج إيفل',
                 explanation: 'باريس هي عاصمة فرنسا وأشهر مدنها'
             },
             {
                 question: 'كم عدد أيام الأسبوع؟',
-                answers: ['5', '6', '7', '8'],
+                answers: ['5 أيام', '6 أيام', '7 أيام', '8 أيام'],
                 correct: 2,
-                hint: 'عددها ثابت في جميع الثقافات',
+                hint: 'رقم ثابت في جميع الثقافات',
                 explanation: 'الأسبوع يتكون من 7 أيام'
             },
             {
                 question: 'ما هو لون التفاحة الناضجة؟',
-                answers: ['أزرق', 'أخضر', 'أحمر', 'أسود'],
-                correct: 2,
+                answers: ['أسود', 'أحمر', 'أخضر', 'أزرق'],
+                correct: 1,
                 hint: 'لون شائع للفواكه',
-                explanation: 'معظم التفاح الناضج يكون أحمراً'
+                explanation: 'معظم التفاح الناضج يكون أحمر'
             }
         ]);
         
         this.addQuestions('general', 'medium', [
             {
                 question: 'من هو مؤلف كتاب "الأمير"؟',
-                answers: ['شكسبير', 'أفلاطون', 'ميكافيلي', 'أرسطو'],
-                correct: 2,
-                hint: 'كاتب إيطالي من عصر النهضة',
-                explanation: 'نيكولو ميكافيلي، فيلسوف وكاتب إيطالي'
-            },
-            {
-                question: 'ما هي أعلى جائزة أدبية في العالم العربي؟',
-                answers: ['جائزة نوبل', 'جائزة البوكر العربية', 'جائزة الشيخ زايد', 'جائزة الملك فيصل'],
+                answers: ['أرسطو', 'ميكافيلي', 'أفلاطون', 'شكسبير'],
                 correct: 1,
-                hint: 'تركز على الرواية العربية',
-                explanation: 'جائزة البوكر العربية هي أرفع جائزة للرواية العربية'
+                hint: 'كاتب إيطالي من عصر النهضة',
+                explanation: 'نيكولو ميكافيلي فيلسوف وكاتب إيطالي'
             }
         ]);
         
-        // --- أسئلة التاريخ ---
+        // أسئلة التاريخ
         this.addQuestions('history', 'easy', [
             {
                 question: 'في أي سنة هجرية حدثت معركة بدر؟',
-                answers: ['سنة 4 هـ', 'سنة 3 هـ', 'سنة 2 هـ', 'سنة 1 هـ'],
-                correct: 2,
-                hint: 'في العام الثاني للهجرة',
-                explanation: 'معركة بدر الكبرى حدثت في السنة الثانية للهجرة'
-            },
-            {
-                question: 'من هو مؤسس الدولة الأموية؟',
-                answers: ['مروان بن الحكم', 'معاوية بن أبي سفيان', 'يزيد بن معاوية', 'عبد الملك بن مروان'],
+                answers: ['سنة 1 هـ', 'سنة 2 هـ', 'سنة 3 هـ', 'سنة 4 هـ'],
                 correct: 1,
-                hint: 'كان والياً على الشام',
-                explanation: 'معاوية بن أبي سفيان هو مؤسس الدولة الأموية'
+                hint: 'في العام الثاني للهجرة',
+                explanation: 'حدثت معركة بدر الكبرى في السنة الثانية للهجرة'
             }
         ]);
         
-        this.addQuestions('history', 'hard', [
-            {
-                question: 'متى سقطت غرناطة آخر معاقل المسلمين في الأندلس؟',
-                answers: ['1492 م', '1453 م', '1517 م', '1400 م'],
-                correct: 0,
-                hint: 'نفس سنة اكتشاف أمريكا',
-                explanation: 'سقطت غرناطة سنة 1492 ميلادية'
-            }
-        ]);
-        
-        // --- أسئلة الجغرافيا ---
+        // أسئلة الجغرافيا
         this.addQuestions('geography', 'easy', [
             {
                 question: 'ما هي أكبر دولة في العالم من حيث المساحة؟',
-                answers: ['كندا', 'الصين', 'الولايات المتحدة', 'روسيا'],
+                answers: ['الولايات المتحدة', 'الصين', 'كندا', 'روسيا'],
                 correct: 3,
                 hint: 'تمتد بين قارتي أوروبا وآسيا',
                 explanation: 'روسيا هي أكبر دولة في العالم بمساحة 17 مليون كم²'
-            },
-            {
-                question: 'ما هي أطول نهر في العالم؟',
-                answers: ['الأمازون', 'النيل', 'المسيسيبي', 'الدانوب'],
-                correct: 1,
-                hint: 'يوجد في إفريقيا',
-                explanation: 'نهر النيل هو أطول نهر في العالم بطول 6650 كم'
             }
         ]);
         
-        // --- أسئلة العلوم ---
-        this.addQuestions('science', 'easy', [
-            {
-                question: 'ما هو العنصر الأكثر وفرة في الكون؟',
-                answers: ['الأكسجين', 'الكربون', 'الهيدروجين', 'الهيليوم'],
-                correct: 2,
-                hint: 'أخف العناصر',
-                explanation: 'الهيدروجين هو العنصر الأكثر وفرة في الكون'
-            },
-            {
-                question: 'ما هي سرعة الضوء في الفراغ؟',
-                answers: ['300,000 كم/ث', '150,000 كم/ث', '450,000 كم/ث', '600,000 كم/ث'],
-                correct: 0,
-                hint: 'أسرع شيء في الكون',
-                explanation: 'سرعة الضوء في الفراغ هي 300,000 كم/ثانية'
-            }
-        ]);
-        
-        // --- أسئلة الأطفال ---
-        this.addQuestions('children', 'easy', [
-            {
-                question: 'ما هو لون السماء في يوم صافٍ؟',
-                answers: ['أحمر', 'أصفر', 'أزرق', 'أخضر'],
-                correct: 2,
-                hint: 'لون البحر أيضاً',
-                explanation: 'السماء تبدو زرقاء بسبب تشتت الضوء'
-            },
-            {
-                question: 'كم عدد أرجل العنكبوت؟',
-                answers: ['6', '8', '10', '4'],
-                correct: 1,
-                hint: 'ضعف أرلاك',
-                explanation: 'العنكبوت له 8 أرجل'
-            }
-        ]);
-        
-        // --- أسئلة السياسة ---
-        this.addQuestions('politics', 'medium', [
-            {
-                question: 'ما هي عاصمة الولايات المتحدة الأمريكية؟',
-                answers: ['نيويورك', 'لوس أنجلوس', 'واشنطن دي سي', 'شيكاغو'],
-                correct: 2,
-                hint: 'ليست نيويورك',
-                explanation: 'واشنطن دي سي هي عاصمة الولايات المتحدة'
-            },
-            {
-                question: 'كم عدد الأعضاء الدائمين في مجلس الأمن؟',
-                answers: ['5', '10', '15', '20'],
-                correct: 0,
-                hint: 'أصابع اليد الواحدة',
-                explanation: 'مجلس الأمن له 5 أعضاء دائمين'
-            }
-        ]);
-        
-        // --- أسئلة الرياضة ---
-        this.addQuestions('sports', 'easy', [
-            {
-                question: 'كم عدد اللاعبين في فريق كرة القدم؟',
-                answers: ['10', '11', '12', '9'],
-                correct: 1,
-                hint: 'بالإضافة للحارس',
-                explanation: 'فريق كرة القدم مكون من 11 لاعباً'
-            },
-            {
-                question: 'في أي رياضة يستخدم مضرب وكرات صفراء؟',
-                answers: ['كرة السلة', 'التنس', 'كرة القدم', 'الجولف'],
-                correct: 1,
-                hint: 'لعبها نادال وفيدرر',
-                explanation: 'التنس هي الرياضة التي تستخدم مضرباً وكرات صفراء'
-            }
-        ]);
-        
-        // --- أسئلة الترفيه ---
-        this.addQuestions('entertainment', 'easy', [
-            {
-                question: 'ما هي مدينة السينما الأمريكية الشهيرة؟',
-                answers: ['نيويورك', 'لاس فيغاس', 'هوليوود', 'مايامي'],
-                correct: 2,
-                hint: 'في لوس أنجلوس',
-                explanation: 'هوليوود في لوس أنجلوس هي عاصمة السينما الأمريكية'
-            }
-        ]);
-        
-        // --- أسئلة التكنولوجيا ---
-        this.addQuestions('technology', 'medium', [
-            {
-                question: 'من هو مؤسس شركة مايكروسوفت؟',
-                answers: ['ستيف جوبز', 'بيل جيتس', 'مارك زوكربيرغ', 'لاري بيج'],
-                correct: 1,
-                hint: 'أغنى رجل في العالم لفترة',
-                explanation: 'بيل جيتس هو المؤسس المشارك لشركة مايكروسوفت'
-            }
-        ]);
-        
-        // يمكن إضافة المزيد من الأسئلة هنا
+        // حفظ الأسئلة
+        this.saveQuestions();
     }
     
     /**
@@ -230,11 +126,17 @@ class QuestionManager {
             const questionId = `${categoryId}_${difficulty}_${Date.now()}_${index}`;
             const fullQuestion = {
                 id: questionId,
-                ...q,
+                question: q.question,
+                answers: q.answers,
+                correct: q.correct,
+                hint: q.hint || '',
+                explanation: q.explanation || '',
                 category: categoryId,
                 difficulty: difficulty,
-                used: false,
-                value: this.calculateQuestionValue(difficulty, categoryId)
+                points: this.calculateQuestionValue(difficulty),
+                createdAt: new Date().toISOString(),
+                usageCount: 0,
+                correctRate: 0
             };
             
             this.categories[categoryId].questions[difficulty].push(fullQuestion);
@@ -242,24 +144,11 @@ class QuestionManager {
     }
     
     /**
-     * حساب قيمة السؤال حسب الصعوبة والتصنيف
+     * حساب قيمة السؤال حسب الصعوبة
      */
-    calculateQuestionValue(difficulty, categoryId) {
-        const baseValues = {
-            easy: 100,
-            medium: 300,
-            hard: 500
-        };
-        
-        let multiplier = 1;
-        const category = this.categories[categoryId];
-        if (category) {
-            if (category.id === 'hard' || category.id === 'science') {
-                multiplier = 1.2;
-            }
-        }
-        
-        return Math.floor(baseValues[difficulty] * multiplier);
+    calculateQuestionValue(difficulty) {
+        const values = { easy: 100, medium: 300, hard: 500 };
+        return values[difficulty] || 100;
     }
     
     /**
@@ -283,20 +172,20 @@ class QuestionManager {
         const question = availableQuestions[randomIndex];
         
         this.usedQuestions.add(question.id);
-        this.updateQuestionStats(question);
+        question.usageCount = (question.usageCount || 0) + 1;
         
         return question;
     }
     
     /**
-     * الحصول على مجموعة أسئلة للجلسة
+     * الحصول على مجموعة أسئلة للعبة
      */
     getGameQuestions(categories, difficulty, count = 15) {
         const questions = [];
         const difficulties = ['easy', 'medium', 'hard'];
         
         // توزيع الأسئلة حسب الصعوبة
-        const easyCount = Math.floor(count * 0.5);    // 50% سهلة
+        const easyCount = Math.floor(count * 0.5);  // 50% سهلة
         const mediumCount = Math.floor(count * 0.3); // 30% متوسطة
         const hardCount = count - easyCount - mediumCount; // 20% صعبة
         
@@ -321,7 +210,7 @@ class QuestionManager {
             questions.push(question);
         }
         
-        // خلط الأسئلة
+        // خلط الأسئلة وإرجاع العدد المطلوب
         return this.shuffleArray(questions).slice(0, count);
     }
     
@@ -338,87 +227,60 @@ class QuestionManager {
     }
     
     /**
-     * تحديث إحصائيات السؤال
-     */
-    updateQuestionStats(question) {
-        if (!this.questionStats[question.id]) {
-            this.questionStats[question.id] = {
-                timesUsed: 0,
-                correctAnswers: 0,
-                totalAnswers: 0
-            };
-        }
-        
-        this.questionStats[question.id].timesUsed++;
-    }
-    
-    /**
-     * الحصول على سؤال بديل في حالة عدم وجود أسئلة
+     * الحصول على سؤال افتراضي في حالة عدم وجود أسئلة
      */
     getFallbackQuestion() {
         return {
             id: 'fallback_' + Date.now(),
             question: 'ما هي عاصمة فرنسا؟',
-            answers: ['لندن', 'برلين', 'باريس', 'روما'],
-            correct: 2,
-            hint: 'تقع في أوروبا وتشتهر ببرج إيفل',
+            answers: ['روما', 'باريس', 'برلين', 'لندن'],
+            correct: 1,
+            hint: 'تشتهر ببرج إيفل',
             explanation: 'باريس هي عاصمة فرنسا',
             category: 'general',
             difficulty: 'easy',
-            value: 100
+            points: 100
         };
     }
     
     /**
-     * الحصول على جميع التصنيفات
+     * الحصول على جميع الأسئلة
      */
-    getAllCategories() {
-        return Object.values(this.categories).map(category => ({
-            id: category.id,
-            name: category.name,
-            icon: category.icon,
-            color: category.color,
-            description: category.description,
-            questionCount: this.getCategoryQuestionCount(category.id)
-        }));
-    }
-    
-    /**
-     * حساب عدد الأسئلة في التصنيف
-     */
-    getCategoryQuestionCount(categoryId) {
-        if (!this.categories[categoryId]) return 0;
+    getAllQuestions() {
+        const allQuestions = [];
         
-        const questions = this.categories[categoryId].questions;
-        let count = 0;
-        
-        for (const difficulty in questions) {
-            count += questions[difficulty].length;
+        for (const categoryId in this.categories) {
+            for (const difficulty in this.categories[categoryId].questions) {
+                this.categories[categoryId].questions[difficulty].forEach(q => {
+                    allQuestions.push({
+                        ...q,
+                        categoryName: this.categories[categoryId].name
+                    });
+                });
+            }
         }
         
-        return count;
+        return allQuestions;
     }
     
     /**
-     * إعادة تعيين الأسئلة المستخدمة
+     * البحث في الأسئلة
      */
-    resetUsedQuestions() {
-        this.usedQuestions.clear();
-    }
-    
-    /**
-     * البحث عن أسئلة
-     */
-    searchQuestions(keyword) {
-        const results = [];
+    searchQuestions(query) {
+        if (!query) return this.getAllQuestions();
         
-        for (const category in this.categories) {
-            for (const difficulty in this.categories[category].questions) {
-                this.categories[category].questions[difficulty].forEach(question => {
-                    if (question.question.toLowerCase().includes(keyword.toLowerCase())) {
+        const results = [];
+        const searchQuery = query.toLowerCase();
+        
+        for (const categoryId in this.categories) {
+            for (const difficulty in this.categories[categoryId].questions) {
+                this.categories[categoryId].questions[difficulty].forEach(q => {
+                    if (q.question.toLowerCase().includes(searchQuery) ||
+                        q.category.toLowerCase().includes(searchQuery) ||
+                        q.difficulty.toLowerCase().includes(searchQuery)) {
                         results.push({
-                            ...question,
-                            categoryName: this.categories[category].name
+                            ...q,
+                            categoryName: this.categories[categoryId].name
                         });
                     }
                 });
@@ -429,15 +291,108 @@ class QuestionManager {
     }
     
     /**
-     * الحصول على إحصائيات عامة
+     * إضافة سؤال جديد
+     */
+    addQuestion(questionData) {
+        const questionId = `${questionData.category}_${questionData.difficulty}_${Date.now()}`;
+        
+        const newQuestion = {
+            id: questionId,
+            question: questionData.question,
+            answers: questionData.answers,
+            correct: questionData.correct,
+            hint: questionData.hint || '',
+            explanation: questionData.explanation || '',
+            category: questionData.category,
+            difficulty: questionData.difficulty,
+            points: questionData.points || this.calculateQuestionValue(questionData.difficulty),
+            createdAt: new Date().toISOString(),
+            usageCount: 0,
+            correctRate: 0
+        };
+        
+        if (!this.categories[questionData.category]) {
+            console.error('التصنيف غير موجود:', questionData.category);
+            return false;
+        }
+        
+        this.categories[questionData.category].questions[questionData.difficulty].push(newQuestion);
+        return this.saveQuestions();
+    }
+    
+    /**
+     * حذف سؤال
+     */
+    deleteQuestion(questionId) {
+        for (const categoryId in this.categories) {
+            for (const difficulty in this.categories[categoryId].questions) {
+                const questions = this.categories[categoryId].questions[difficulty];
+                const index = questions.findIndex(q => q.id === questionId);
+                
+                if (index !== -1) {
+                    questions.splice(index, 1);
+                    this.saveQuestions();
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * تحديث سؤال
+     */
+    updateQuestion(questionId, updates) {
+        for (const categoryId in this.categories) {
+            for (const difficulty in this.categories[categoryId].questions) {
+                const questions = this.categories[categoryId].questions[difficulty];
+                const index = questions.findIndex(q => q.id === questionId);
+                
+                if (index !== -1) {
+                    questions[index] = { ...questions[index], ...updates };
+                    this.saveQuestions();
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * حفظ الأسئلة في التخزين المحلي
+     */
+    saveQuestions() {
+        try {
+            localStorage.setItem(GameConfig.STORAGE_KEYS.QUESTIONS, JSON.stringify({
+                categories: this.categories,
+                lastUpdated: new Date().toISOString()
+            }));
+            return true;
+        } catch (error) {
+            console.error('❌ خطأ في حفظ الأسئلة:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * إعادة تعيين الأسئلة المستخدمة
+     */
+    resetUsedQuestions() {
+        this.usedQuestions.clear();
+    }
+    
+    /**
+     * الحصول على إحصائيات الأسئلة
      */
     getStatistics() {
         let totalQuestions = 0;
         let totalUsed = this.usedQuestions.size;
         
-        for (const category in this.categories) {
-            for (const difficulty in this.categories[category].questions) {
-                totalQuestions += this.categories[category].questions[difficulty].length;
+        for (const categoryId in this.categories) {
+            for (const difficulty in this.categories[categoryId].questions) {
+                totalQuestions += this.categories[categoryId].questions[difficulty].length;
             }
         }
         
@@ -453,8 +408,4 @@ class QuestionManager {
 // التصدير للاستخدام
 if (typeof window !== 'undefined') {
     window.QuestionManager = QuestionManager;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = QuestionManager;
 }
