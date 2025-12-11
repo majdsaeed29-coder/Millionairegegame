@@ -1,19 +1,14 @@
-/**
- * ❓ مدير الأسئلة - المليونير الذهبية
- * نظام إدارة كامل للأسئلة مع دعم متعدد التصنيفات والصعوبات
- */
-
+// ❓ مدير الأسئلة
 class QuestionManager {
     constructor() {
         this.categories = {};
         this.usedQuestions = new Set();
         this.initializeCategories();
         this.loadQuestions();
+        console.log('✅ مدير الأسئلة جاهز');
     }
     
-    /**
-     * تهيئة التصنيفات
-     */
+    // تهيئة التصنيفات
     initializeCategories() {
         GameConfig.CATEGORIES.forEach(category => {
             this.categories[category.id] = {
@@ -27,16 +22,13 @@ class QuestionManager {
         });
     }
     
-    /**
-     * تحميل الأسئلة
-     */
+    // تحميل الأسئلة
     loadQuestions() {
-        // محاولة تحميل الأسئلة المحفوظة
         try {
-            const savedQuestions = localStorage.getItem(GameConfig.STORAGE_KEYS.QUESTIONS);
-            if (savedQuestions) {
-                const parsed = JSON.parse(savedQuestions);
-                this.categories = parsed.categories || this.categories;
+            const saved = localStorage.getItem(GameConfig.STORAGE_KEYS.QUESTIONS);
+            if (saved) {
+                const data = JSON.parse(saved);
+                this.categories = data.categories || this.categories;
                 console.log('✅ تم تحميل الأسئلة المحفوظة');
                 return;
             }
@@ -44,33 +36,31 @@ class QuestionManager {
             console.error('❌ خطأ في تحميل الأسئلة:', error);
         }
         
-        // إذا لم توجد أسئلة محفوظة، أنشئ الأسئلة الافتراضية
+        // إنشاء أسئلة افتراضية إذا لم توجد
         this.createDefaultQuestions();
     }
     
-    /**
-     * إنشاء الأسئلة الافتراضية
-     */
+    // إنشاء أسئلة افتراضية
     createDefaultQuestions() {
-        // أسئلة الثقافة العامة
+        // أسئلة ثقافة عامة
         this.addQuestions('general', 'easy', [
             {
                 question: 'ما هي عاصمة فرنسا؟',
-                answers: ['روما', 'لندن', 'باريس', 'برلين'],
+                answers: ['لندن', 'برلين', 'باريس', 'روما'],
                 correct: 2,
                 hint: 'تشتهر ببرج إيفل',
                 explanation: 'باريس هي عاصمة فرنسا وأشهر مدنها'
             },
             {
                 question: 'كم عدد أيام الأسبوع؟',
-                answers: ['5 أيام', '6 أيام', '7 أيام', '8 أيام'],
+                answers: ['5', '6', '7', '8'],
                 correct: 2,
                 hint: 'رقم ثابت في جميع الثقافات',
                 explanation: 'الأسبوع يتكون من 7 أيام'
             },
             {
                 question: 'ما هو لون التفاحة الناضجة؟',
-                answers: ['أسود', 'أحمر', 'أخضر', 'أزرق'],
+                answers: ['أخضر', 'أحمر', 'أصفر', 'برتقالي'],
                 correct: 1,
                 hint: 'لون شائع للفواكه',
                 explanation: 'معظم التفاح الناضج يكون أحمر'
@@ -113,12 +103,10 @@ class QuestionManager {
         this.saveQuestions();
     }
     
-    /**
-     * إضافة أسئلة لتصنيف معين
-     */
+    // إضافة أسئلة
     addQuestions(categoryId, difficulty, questions) {
         if (!this.categories[categoryId]) {
-            console.error(`التصنيف ${categoryId} غير موجود`);
+            console.error(`❌ التصنيف ${categoryId} غير موجود`);
             return;
         }
         
@@ -133,27 +121,36 @@ class QuestionManager {
                 explanation: q.explanation || '',
                 category: categoryId,
                 difficulty: difficulty,
-                points: this.calculateQuestionValue(difficulty),
-                createdAt: new Date().toISOString(),
-                usageCount: 0,
-                correctRate: 0
+                points: this.getPointsForDifficulty(difficulty),
+                createdAt: new Date().toISOString()
             };
             
             this.categories[categoryId].questions[difficulty].push(fullQuestion);
         });
     }
     
-    /**
-     * حساب قيمة السؤال حسب الصعوبة
-     */
-    calculateQuestionValue(difficulty) {
-        const values = { easy: 100, medium: 300, hard: 500 };
-        return values[difficulty] || 100;
+    // الحصول على نقاط حسب الصعوبة
+    getPointsForDifficulty(difficulty) {
+        const points = { easy: 100, medium: 300, hard: 500 };
+        return points[difficulty] || 100;
     }
     
-    /**
-     * الحصول على سؤال عشوائي
-     */
+    // حفظ الأسئلة
+    saveQuestions() {
+        try {
+            const data = {
+                categories: this.categories,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(GameConfig.STORAGE_KEYS.QUESTIONS, JSON.stringify(data));
+            return true;
+        } catch (error) {
+            console.error('❌ خطأ في حفظ الأسئلة:', error);
+            return false;
+        }
+    }
+    
+    // الحصول على سؤال عشوائي
     getRandomQuestion(categoryId, difficulty) {
         if (!this.categories[categoryId] || !this.categories[categoryId].questions[difficulty]) {
             return this.getFallbackQuestion();
@@ -163,8 +160,8 @@ class QuestionManager {
         const availableQuestions = questions.filter(q => !this.usedQuestions.has(q.id));
         
         if (availableQuestions.length === 0) {
-            // إعادة تعيين الأسئلة المستخدمة لهذا التصنيف
-            questions.forEach(q => this.usedQuestions.delete(q.id));
+            // إعادة استخدام الأسئلة إذا نفدت
+            this.usedQuestions.clear();
             return this.getRandomQuestion(categoryId, difficulty);
         }
         
@@ -172,51 +169,44 @@ class QuestionManager {
         const question = availableQuestions[randomIndex];
         
         this.usedQuestions.add(question.id);
-        question.usageCount = (question.usageCount || 0) + 1;
-        
         return question;
     }
     
-    /**
-     * الحصول على مجموعة أسئلة للعبة
-     */
+    // الحصول على أسئلة للعبة
     getGameQuestions(categories, difficulty, count = 15) {
         const questions = [];
-        const difficulties = ['easy', 'medium', 'hard'];
         
-        // توزيع الأسئلة حسب الصعوبة
+        // توزيع الأسئلة
         const easyCount = Math.floor(count * 0.5);  // 50% سهلة
         const mediumCount = Math.floor(count * 0.3); // 30% متوسطة
         const hardCount = count - easyCount - mediumCount; // 20% صعبة
         
-        // الحصول على الأسئلة السهلة
+        // أسئلة سهلة
         for (let i = 0; i < easyCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'easy');
-            questions.push(question);
+            if (question) questions.push(question);
         }
         
-        // الحصول على الأسئلة المتوسطة
+        // أسئلة متوسطة
         for (let i = 0; i < mediumCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'medium');
-            questions.push(question);
+            if (question) questions.push(question);
         }
         
-        // الحصول على الأسئلة الصعبة
+        // أسئلة صعبة
         for (let i = 0; i < hardCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'hard');
-            questions.push(question);
+            if (question) questions.push(question);
         }
         
-        // خلط الأسئلة وإرجاع العدد المطلوب
+        // خلط الأسئلة
         return this.shuffleArray(questions).slice(0, count);
     }
     
-    /**
-     * خلط مصفوفة عشوائياً
-     */
+    // خلط الأسئلة
     shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -226,15 +216,13 @@ class QuestionManager {
         return shuffled;
     }
     
-    /**
-     * الحصول على سؤال افتراضي في حالة عدم وجود أسئلة
-     */
+    // سؤال افتراضي
     getFallbackQuestion() {
         return {
-            id: 'fallback_' + Date.now(),
+            id: 'fallback',
             question: 'ما هي عاصمة فرنسا؟',
-            answers: ['روما', 'باريس', 'برلين', 'لندن'],
-            correct: 1,
+            answers: ['لندن', 'برلين', 'باريس', 'روما'],
+            correct: 2,
             hint: 'تشتهر ببرج إيفل',
             explanation: 'باريس هي عاصمة فرنسا',
             category: 'general',
@@ -243,9 +231,7 @@ class QuestionManager {
         };
     }
     
-    /**
-     * الحصول على جميع الأسئلة
-     */
+    // الحصول على جميع الأسئلة
     getAllQuestions() {
         const allQuestions = [];
         
@@ -263,12 +249,8 @@ class QuestionManager {
         return allQuestions;
     }
     
-    /**
-     * البحث في الأسئلة
-     */
+    // البحث في الأسئلة
     searchQuestions(query) {
-        if (!query) return this.getAllQuestions();
-        
         const results = [];
         const searchQuery = query.toLowerCase();
         
@@ -276,8 +258,7 @@ class QuestionManager {
             for (const difficulty in this.categories[categoryId].questions) {
                 this.categories[categoryId].questions[difficulty].forEach(q => {
                     if (q.question.toLowerCase().includes(searchQuery) ||
-                        q.category.toLowerCase().includes(searchQuery) ||
-                        q.difficulty.toLowerCase().includes(searchQuery)) {
+                        q.category.toLowerCase().includes(searchQuery)) {
                         results.push({
                             ...q,
                             categoryName: this.categories[categoryId].name
@@ -290,9 +271,7 @@ class QuestionManager {
         return results;
     }
     
-    /**
-     * إضافة سؤال جديد
-     */
+    // إضافة سؤال جديد
     addQuestion(questionData) {
         const questionId = `${questionData.category}_${questionData.difficulty}_${Date.now()}`;
         
@@ -305,14 +284,12 @@ class QuestionManager {
             explanation: questionData.explanation || '',
             category: questionData.category,
             difficulty: questionData.difficulty,
-            points: questionData.points || this.calculateQuestionValue(questionData.difficulty),
-            createdAt: new Date().toISOString(),
-            usageCount: 0,
-            correctRate: 0
+            points: this.getPointsForDifficulty(questionData.difficulty),
+            createdAt: new Date().toISOString()
         };
         
         if (!this.categories[questionData.category]) {
-            console.error('التصنيف غير موجود:', questionData.category);
+            console.error('❌ التصنيف غير موجود');
             return false;
         }
         
@@ -320,9 +297,7 @@ class QuestionManager {
         return this.saveQuestions();
     }
     
-    /**
-     * حذف سؤال
-     */
+    // حذف سؤال
     deleteQuestion(questionId) {
         for (const categoryId in this.categories) {
             for (const difficulty in this.categories[categoryId].questions) {
@@ -331,8 +306,7 @@ class QuestionManager {
                 
                 if (index !== -1) {
                     questions.splice(index, 1);
-                    this.saveQuestions();
-                    return true;
+                    return this.saveQuestions();
                 }
             }
         }
@@ -340,72 +314,13 @@ class QuestionManager {
         return false;
     }
     
-    /**
-     * تحديث سؤال
-     */
-    updateQuestion(questionId, updates) {
-        for (const categoryId in this.categories) {
-            for (const difficulty in this.categories[categoryId].questions) {
-                const questions = this.categories[categoryId].questions[difficulty];
-                const index = questions.findIndex(q => q.id === questionId);
-                
-                if (index !== -1) {
-                    questions[index] = { ...questions[index], ...updates };
-                    this.saveQuestions();
-                    return true;
-                }
-            }
-        }
-        
-        return false;
-    }
-    
-    /**
-     * حفظ الأسئلة في التخزين المحلي
-     */
-    saveQuestions() {
-        try {
-            localStorage.setItem(GameConfig.STORAGE_KEYS.QUESTIONS, JSON.stringify({
-                categories: this.categories,
-                lastUpdated: new Date().toISOString()
-            }));
-            return true;
-        } catch (error) {
-            console.error('❌ خطأ في حفظ الأسئلة:', error);
-            return false;
-        }
-    }
-    
-    /**
-     * إعادة تعيين الأسئلة المستخدمة
-     */
+    // إعادة تعيين الأسئلة المستخدمة
     resetUsedQuestions() {
         this.usedQuestions.clear();
     }
-    
-    /**
-     * الحصول على إحصائيات الأسئلة
-     */
-    getStatistics() {
-        let totalQuestions = 0;
-        let totalUsed = this.usedQuestions.size;
-        
-        for (const categoryId in this.categories) {
-            for (const difficulty in this.categories[categoryId].questions) {
-                totalQuestions += this.categories[categoryId].questions[difficulty].length;
-            }
-        }
-        
-        return {
-            totalQuestions,
-            totalUsed,
-            categories: Object.keys(this.categories).length,
-            usageRate: totalQuestions > 0 ? (totalUsed / totalQuestions) * 100 : 0
-        };
-    }
 }
 
-// التصدير للاستخدام
+// جعلها متاحة عالمياً
 if (typeof window !== 'undefined') {
     window.QuestionManager = QuestionManager;
 }
