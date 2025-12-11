@@ -6,12 +6,9 @@
 class MillionaireApp {
     constructor() {
         this.config = GameConfig;
-        this.authSystem = new AuthSystem();
-        this.questionManager = new QuestionManager();
-        this.gameEngine = new GameEngine();
-        this.uiManager = new UIManager();
         this.isInitialized = false;
         
+        // تهيئة المكونات بعد تحميل الصفحة
         this.init();
     }
     
@@ -22,20 +19,51 @@ class MillionaireApp {
         console.log('🚀 تطبيق ميليونير الذهبية يبدأ التشغيل...');
         
         try {
-            // ربط المكونات معاً
+            // الانتظار حتى تحميل DOM
+            if (document.readyState !== 'loading') {
+                await this.initializeComponents();
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.initializeComponents();
+                });
+            }
+            
+        } catch (error) {
+            console.error('❌ خطأ في تهيئة التطبيق:', error);
+            this.showErrorScreen();
+        }
+    }
+    
+    /**
+     * تهيئة جميع المكونات
+     */
+    async initializeComponents() {
+        try {
+            // 1. أولاً: تحميل الأنظمة
+            this.authSystem = new AuthSystem();
+            this.questionManager = new QuestionManager();
+            this.gameEngine = new GameEngine();
+            this.uiManager = new UIManager();
+            
+            // 2. ربط المكونات معاً
             this.setupComponentConnections();
             
-            // التحقق من تسجيل الدخول التلقائي
+            // 3. التحقق من تسجيل الدخول التلقائي
             if (this.authSystem.isLoggedIn()) {
                 await this.handleSuccessfulLogin(this.authSystem.getCurrentUser());
+            } else {
+                // الانتقال لشاشة المصادقة بعد 2 ثانية
+                setTimeout(() => {
+                    this.uiManager.showScreen('auth');
+                }, 2000);
             }
             
             this.isInitialized = true;
             console.log('✅ التطبيق جاهز للاستخدام!');
             
         } catch (error) {
-            console.error('❌ خطأ في تهيئة التطبيق:', error);
-            this.uiManager.showNotification('خطأ في تحميل التطبيق! يرجى تحديث الصفحة.', 'error');
+            console.error('❌ خطأ في تحميل المكونات:', error);
+            this.showErrorScreen();
         }
     }
     
@@ -43,34 +71,36 @@ class MillionaireApp {
      * ربط المكونات معاً
      */
     setupComponentConnections() {
-        // ربط مدير الواجهة مع محرك اللعبة
-        this.gameEngine.onTimerUpdate = (timeLeft) => {
-            this.uiManager.updateTimer(timeLeft);
-        };
-        
-        this.gameEngine.onTimeWarning = (timeLeft) => {
-            const timerBox = document.querySelector('.timer-box');
-            if (timerBox) {
-                timerBox.classList.add('warning');
-            }
-        };
-        
-        this.gameEngine.onTimeUp = () => {
-            this.uiManager.showNotification('انتهى الوقت! ⏰', 'error');
-        };
-        
-        this.gameEngine.onSafeHaven = (score) => {
-            this.uiManager.showNotification(`🎉 مبروك! وصلت للضمان: ${score.toLocaleString()} ${this.config.CURRENCY}`, 'success');
-        };
-        
-        this.gameEngine.onLevelUp = (level) => {
-            this.uiManager.showNotification(`⭐ مبروك! ارتفع مستواك إلى ${level}`, 'gold');
-        };
-        
-        this.gameEngine.onFlashEffect = (type) => {
-            this.uiManager.applyFlashEffect(type);
-            this.uiManager.playSound(type === 'correct' ? 'correct' : 'wrong');
-        };
+        // ربط محرك اللعبة مع مدير الواجهة
+        if (this.gameEngine && this.uiManager) {
+            this.gameEngine.onTimerUpdate = (timeLeft) => {
+                this.uiManager.updateTimer(timeLeft);
+            };
+            
+            this.gameEngine.onTimeWarning = (timeLeft) => {
+                const timerBox = document.querySelector('.timer-box');
+                if (timerBox) {
+                    timerBox.classList.add('warning');
+                }
+            };
+            
+            this.gameEngine.onTimeUp = () => {
+                this.uiManager.showNotification('انتهى الوقت! ⏰', 'error');
+            };
+            
+            this.gameEngine.onSafeHaven = (score) => {
+                this.uiManager.showNotification(`🎉 مبروك! وصلت للضمان: ${score.toLocaleString()} ${this.config.CURRENCY}`, 'success');
+            };
+            
+            this.gameEngine.onLevelUp = (level) => {
+                this.uiManager.showNotification(`⭐ مبروك! ارتفع مستواك إلى ${level}`, 'gold');
+            };
+            
+            this.gameEngine.onFlashEffect = (type) => {
+                this.uiManager.applyFlashEffect(type);
+                this.uiManager.playSound(type === 'correct' ? 'correct' : 'wrong');
+            };
+        }
         
         // إعداد أحداث المصادقة
         this.setupAuthEvents();
@@ -83,9 +113,8 @@ class MillionaireApp {
      * إعداد أحداث المصادقة
      */
     setupAuthEvents() {
+        // زر تسجيل الدخول
         const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        
         if (loginBtn) {
             loginBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -93,6 +122,8 @@ class MillionaireApp {
             });
         }
         
+        // زر التسجيل
+        const registerBtn = document.getElementById('register-btn');
         if (registerBtn) {
             registerBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -100,14 +131,28 @@ class MillionaireApp {
             });
         }
         
-        // السماح بتسجيل الدخول بالضغط على Enter
+        // التبويبات
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        
+        if (loginTab && registerTab) {
+            loginTab.addEventListener('click', () => {
+                this.uiManager.showAuthForm('login');
+            });
+            
+            registerTab.addEventListener('click', () => {
+                this.uiManager.showAuthForm('register');
+            });
+        }
+        
+        // Enter لتسجيل الدخول
         const passwordInput = document.getElementById('password-input');
         if (passwordInput) {
             passwordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
                     if (this.uiManager.currentScreen === 'auth') {
                         const activeForm = document.querySelector('.auth-form.active');
-                        if (activeForm.id === 'login-form') {
+                        if (activeForm && activeForm.id === 'login-form') {
                             this.handleLogin();
                         } else {
                             this.handleRegister();
@@ -152,9 +197,11 @@ class MillionaireApp {
      * معالجة التسجيل
      */
     async handleRegister() {
-        const username = document.getElementById('username-input')?.value.trim();
-        const password = document.getElementById('password-input')?.value;
-        const email = document.getElementById('email-input')?.value.trim();
+        const username = document.getElementById('register-username')?.value.trim() || 
+                         document.getElementById('username-input')?.value.trim();
+        const password = document.getElementById('register-password')?.value || 
+                         document.getElementById('password-input')?.value;
+        const email = document.getElementById('register-email')?.value.trim();
         
         if (!username || !password) {
             this.uiManager.showNotification('يرجى ملء الحقول المطلوبة!', 'error');
@@ -188,7 +235,9 @@ class MillionaireApp {
         this.uiManager.showScreen('main-menu');
         
         // تحديث بيانات المستخدم في محرك اللعبة
-        this.gameEngine.authSystem = this.authSystem;
+        if (this.gameEngine) {
+            this.gameEngine.authSystem = this.authSystem;
+        }
     }
     
     /**
@@ -256,6 +305,14 @@ class MillionaireApp {
                 this.showLeaderboard();
             });
         }
+        
+        // زر كيفية اللعب
+        const howToPlayBtn = document.getElementById('how-to-play-btn');
+        if (howToPlayBtn) {
+            howToPlayBtn.addEventListener('click', () => {
+                this.showHowToPlay();
+            });
+        }
     }
     
     /**
@@ -294,7 +351,7 @@ class MillionaireApp {
                 this.uiManager.showScreen('game');
                 
                 // عرض السؤال الأول
-                this.displayQuestion(result.firstQuestion);
+                this.uiManager.displayQuestion(result.firstQuestion);
                 
                 this.uiManager.showNotification('بدأت اللعبة! حظاً موفقاً! 🍀', 'success');
             } else {
@@ -309,199 +366,41 @@ class MillionaireApp {
     }
     
     /**
-     * عرض سؤال
+     * إظهار كيفية اللعب
      */
-    displayQuestion(questionData) {
-        if (!questionData) return;
-        
-        this.uiManager.displayQuestion(questionData);
-        
-        // تحديث واجهة اللعبة
-        this.updateGameUI();
-    }
-    
-    /**
-     * اختيار إجابة
-     */
-    async selectAnswer(answerIndex) {
-        try {
-            const result = this.gameEngine.selectAnswer(answerIndex);
-            
-            if (result.success) {
-                // تمييز الإجابات
-                this.uiManager.highlightAnswers(answerIndex, result.correctAnswer);
+    showHowToPlay() {
+        const content = `
+            <div class="instructions">
+                <h3>🎮 كيفية اللعب</h3>
+                <ol>
+                    <li>اختر اسمك وصورتك الرمزية</li>
+                    <li>اختر التصنيفات التي تريد الأسئلة منها</li>
+                    <li>اختر مستوى الصعوبة (سهل، متوسط، صعب)</li>
+                    <li>أجب على 15 سؤالاً للوصول للمليون دولار</li>
+                    <li>استخدم أدوات المساعدة عندما تحتاجها</li>
+                    <li>أجب بسرعة قبل انتهاء الوقت</li>
+                </ol>
                 
-                // إظهار التفسير بعد فترة
-                setTimeout(() => {
-                    if (result.explanation) {
-                        this.uiManager.showNotification(result.explanation, 'info');
-                    }
-                }, 1000);
+                <h4>🎯 قواعد اللعبة</h4>
+                <ul>
+                    <li>لكل سؤال 4 إجابات، واحدة فقط صحيحة</li>
+                    <li>الأسئلة 5 و 10 هي أسئلة ضمان (لا تخسر فيها)</li>
+                    <li>يمكنك استخدام أدوات المساعدة حسب مستوى الصعوبة</li>
+                    <li>إذا أجبت خطأ، تنتهي اللعبة وتحتفظ بآخر ضمان</li>
+                    <li>إذا أجبت على جميع الأسئلة، تربح مليون دولار!</li>
+                </ul>
                 
-                // تحديث واجهة اللعبة
-                this.updateGameUI();
-                
-                // إذا كانت الإجابة صحيحة، تمكين زر التالي
-                if (result.isCorrect) {
-                    this.enableNextButton();
-                } else {
-                    // إذا كانت خاطئة، الانتقال للنتائج بعد فترة
-                    setTimeout(() => {
-                        this.finishGame(false);
-                    }, 3000);
-                }
-            }
-        } catch (error) {
-            console.error('خطأ في اختيار الإجابة:', error);
-        }
-    }
-    
-    /**
-     * الانتقال للسؤال التالي
-     */
-    async nextQuestion() {
-        try {
-            const result = this.gameEngine.nextQuestion();
-            
-            if (result.success) {
-                this.displayQuestion(result.question);
-                this.disableNextButton();
-            } else {
-                // إذا لم يكن هناك سؤال تالي، إنهاء اللعبة
-                this.finishGame(true);
-            }
-        } catch (error) {
-            console.error('خطأ في الانتقال للسؤال التالي:', error);
-        }
-    }
-    
-    /**
-     * استخدام أداة مساعدة
-     */
-    async useLifeline(lifelineId) {
-        try {
-            if (lifelineId === 'SKIP_AD') {
-                this.uiManager.showConfirmation(
-                    'هل تريد مشاهدة إعلان لتخطي هذا السؤال؟',
-                    async () => {
-                        this.uiManager.showLoading('جاري تشغيل الإعلان...');
-                        
-                        const result = await this.gameEngine.skipWithAd();
-                        
-                        if (result.success) {
-                            this.uiManager.showNotification('تم تخطي السؤال بنجاح!', 'success');
-                            this.displayQuestion(result.nextQuestion);
-                        } else {
-                            this.uiManager.showNotification('فشل في تخطي السؤال!', 'error');
-                        }
-                        
-                        this.uiManager.hideLoading();
-                    }
-                );
-            } else {
-                const result = this.gameEngine.useLifeline(lifelineId);
-                
-                if (result.success) {
-                    this.applyLifelineEffect(lifelineId, result);
-                    this.updateGameUI();
-                } else {
-                    this.uiManager.showNotification(result.message, 'warning');
-                }
-            }
-        } catch (error) {
-            console.error('خطأ في استخدام أداة المساعدة:', error);
-            this.uiManager.showNotification('حدث خطأ!', 'error');
-        }
-    }
-    
-    /**
-     * تطبيق تأثير أداة المساعدة
-     */
-    applyLifelineEffect(lifelineId, result) {
-        switch (lifelineId) {
-            case '50_50':
-                this.applyFiftyFiftyEffect(result.removedAnswers);
-                break;
-            case 'PHONE_FRIEND':
-                this.applyPhoneFriendEffect(result);
-                break;
-            case 'AUDIENCE':
-                this.applyAudienceEffect(result.percentages);
-                break;
-        }
-    }
-    
-    /**
-     * تطبيق تأثير 50:50
-     */
-    applyFiftyFiftyEffect(removedAnswers) {
-        const answerBtns = document.querySelectorAll('.answer-btn');
-        removedAnswers.forEach(index => {
-            if (answerBtns[index]) {
-                answerBtns[index].style.opacity = '0.3';
-                answerBtns[index].style.pointerEvents = 'none';
-            }
-        });
-    }
-    
-    /**
-     * تطبيق تأثير اتصال بصديق
-     */
-    applyPhoneFriendEffect(result) {
-        const letters = ['أ', 'ب', 'ج', 'د'];
-        const message = `
-            📞 صديقك يقول: 
-            "أعتقد أن الإجابة هي ${letters[result.suggestedAnswer]}"
-            (${result.confidence})
-        `;
-        
-        this.uiManager.showNotification(message, 'info', 8000);
-    }
-    
-    /**
-     * تطبيق تأثير تصويت الجمهور
-     */
-    applyAudienceEffect(percentages) {
-        const modalContent = `
-            <div class="audience-poll">
-                <h4>📊 تصويت الجمهور</h4>
-                ${percentages.map((percent, index) => `
-                    <div class="poll-item">
-                        <div class="poll-letter">${['أ', 'ب', 'ج', 'د'][index]}</div>
-                        <div class="poll-bar">
-                            <div class="poll-fill" style="width: ${percent}%"></div>
-                        </div>
-                        <div class="poll-percent">${Math.round(percent)}%</div>
-                    </div>
-                `).join('')}
-                <p class="poll-note">هذه النتائج افتراضية تعتمد على إحصائيات سابقة</p>
+                <h4>🛠️ أدوات المساعدة</h4>
+                <ul>
+                    <li><strong>50:50</strong> - يحذف إجابتين خاطئتين</li>
+                    <li><strong>اتصال بصديق</strong> - استشارة خبير</li>
+                    <li><strong>تصويت الجمهور</strong> - رأي المشاهدين</li>
+                    <li><strong>تخطي السؤال</strong> - مشاهدة إعلان للتخطي</li>
+                </ul>
             </div>
         `;
         
-        this.uiManager.showModal('تصويت الجمهور 👥', modalContent);
-    }
-    
-    /**
-     * إنهاء اللعبة
-     */
-    async finishGame(isWin) {
-        try {
-            const result = this.gameEngine.finishGame();
-            
-            if (result.success) {
-                // عرض النتائج
-                this.uiManager.showGameResults(result.gameResult);
-                
-                // تحديث القائمة الرئيسية
-                const user = this.authSystem.getCurrentUser();
-                if (user) {
-                    this.uiManager.updateMainMenu(user);
-                }
-            }
-        } catch (error) {
-            console.error('خطأ في إنهاء اللعبة:', error);
-            this.uiManager.showNotification('حدث خطأ في إنهاء اللعبة!', 'error');
-        }
+        this.uiManager.showModal('كيفية اللعب 🎮', content, { size: 'large' });
     }
     
     /**
@@ -511,59 +410,16 @@ class MillionaireApp {
         this.uiManager.showConfirmation(
             'هل تريد الخروج من اللعبة؟ ستخسر المبلغ الحالي.',
             () => {
-                const result = this.gameEngine.quitGame();
-                
-                if (result.success) {
-                    this.uiManager.showGameResults(result.gameResult);
-                    this.uiManager.showNotification('تم الخروج من اللعبة!', 'info');
+                if (this.gameEngine) {
+                    const result = this.gameEngine.quitGame();
+                    
+                    if (result.success) {
+                        this.uiManager.showGameResults(result.gameResult);
+                        this.uiManager.showNotification('تم الخروج من اللعبة!', 'info');
+                    }
                 }
             }
         );
-    }
-    
-    /**
-     * تحديث واجهة اللعبة
-     */
-    updateGameUI() {
-        const gameState = this.gameEngine.getGameState();
-        
-        // تحديث النتيجة
-        const scoreElement = document.querySelector('.score-box .stat-value');
-        if (scoreElement) {
-            scoreElement.textContent = gameState.score.toLocaleString();
-        }
-        
-        // تحديث عدد الإجابات الصحيحة
-        const correctElement = document.querySelector('.correct-box .stat-value');
-        if (correctElement) {
-            correctElement.textContent = gameState.correctAnswers;
-        }
-        
-        // تحديث الأدوات المتبقية
-        const lifelines = this.gameEngine.getAvailableLifelines();
-        this.uiManager.updateLifelines(lifelines);
-    }
-    
-    /**
-     * تمكين زر التالي
-     */
-    enableNextButton() {
-        const nextBtn = document.querySelector('.next-btn');
-        if (nextBtn) {
-            nextBtn.disabled = false;
-            nextBtn.classList.add('pulse');
-        }
-    }
-    
-    /**
-     * تعطيل زر التالي
-     */
-    disableNextButton() {
-        const nextBtn = document.querySelector('.next-btn');
-        if (nextBtn) {
-            nextBtn.disabled = true;
-            nextBtn.classList.remove('pulse');
-        }
     }
     
     /**
@@ -571,6 +427,11 @@ class MillionaireApp {
      */
     async shareResults() {
         try {
+            if (!this.gameEngine || !this.authSystem) {
+                this.uiManager.showNotification('لا توجد نتائج للمشاركة!', 'warning');
+                return;
+            }
+            
             const gameResult = this.gameEngine.currentState?.gameResult;
             const user = this.authSystem.getCurrentUser();
             
@@ -607,16 +468,7 @@ class MillionaireApp {
             }
         } catch (error) {
             console.error('خطأ في المشاركة:', error);
-            
-            // طريقة بديلة
-            const textArea = document.createElement('textarea');
-            textArea.value = shareText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            this.uiManager.showNotification('تم نسخ النتيجة للحافظة! 📋', 'success');
+            this.uiManager.showNotification('فشلت المشاركة!', 'error');
         }
     }
     
@@ -629,10 +481,45 @@ class MillionaireApp {
     }
     
     /**
-     * عرض الإعدادات
+     * عرض شاشة الخطأ
      */
-    showSettings() {
-        this.uiManager.showSettingsModal();
+    showErrorScreen() {
+        // إخفاء شاشة التحميل
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+        }
+        
+        // عرض رسالة خطأ
+        const errorHTML = `
+            <div style="text-align: center; padding: 50px; color: white;">
+                <h1 style="color: #e74c3c;">❌ خطأ في التحميل</h1>
+                <p>حدث خطأ في تحميل اللعبة. يرجى:</p>
+                <ol style="text-align: right; margin: 20px auto; max-width: 400px;">
+                    <li>تحديث الصفحة (F5)</li>
+                    <li>التأكد من اتصال الإنترنت</li>
+                    <li>محاولة الدخول لاحقاً</li>
+                </ol>
+                <button onclick="window.location.reload()" style="
+                    background: var(--gold-primary);
+                    color: black;
+                    border: none;
+                    padding: 15px 30px;
+                    border-radius: 25px;
+                    font-size: 18px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    margin-top: 20px;
+                ">
+                    🔄 تحديث الصفحة
+                </button>
+            </div>
+        `;
+        
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.innerHTML = errorHTML;
+        }
     }
     
     /**
@@ -641,23 +528,123 @@ class MillionaireApp {
     getAppStatus() {
         return {
             initialized: this.isInitialized,
-            userLoggedIn: this.authSystem.isLoggedIn(),
-            gameActive: this.gameEngine.isGameActive,
-            currentScreen: this.uiManager.currentScreen,
-            audioEnabled: this.uiManager.audioEnabled
+            userLoggedIn: this.authSystem ? this.authSystem.isLoggedIn() : false,
+            gameActive: this.gameEngine ? this.gameEngine.isGameActive : false,
+            currentScreen: this.uiManager ? this.uiManager.currentScreen : 'loading'
         };
     }
 }
 
-// بدء التطبيق عند تحميل الصفحة
+// ===== تهيئة التطبيق بعد تحميل الصفحة =====
 document.addEventListener('DOMContentLoaded', () => {
-    // تهيئة التطبيق
+    // إزالة فئة preload بعد التحميل
+    document.body.classList.remove('preload');
+    
+    // إنشاء التطبيق
     window.gameApp = new MillionaireApp();
     
     // جعل التطبيق متاحاً عالمياً
     window.MillionaireApp = MillionaireApp;
     
-    // تسجيل Service Worker
+    // ===== إضافة زر تخطي التحميل يدوياً =====
+    const skipLoadingBtn = document.createElement('button');
+    skipLoadingBtn.id = 'manual-skip-loading';
+    skipLoadingBtn.innerHTML = '⏩ تخطي التحميل';
+    skipLoadingBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-family: inherit;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s;
+    `;
+    
+    skipLoadingBtn.addEventListener('mouseenter', () => {
+        skipLoadingBtn.style.transform = 'scale(1.1)';
+        skipLoadingBtn.style.background = '#c0392b';
+    });
+    
+    skipLoadingBtn.addEventListener('mouseleave', () => {
+        skipLoadingBtn.style.transform = 'scale(1)';
+        skipLoadingBtn.style.background = '#e74c3c';
+    });
+    
+    skipLoadingBtn.addEventListener('click', () => {
+        // إخفاء شاشة التحميل
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        
+        if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+            loadingScreen.classList.remove('active');
+        }
+        
+        if (authScreen) {
+            authScreen.style.display = 'flex';
+            setTimeout(() => {
+                authScreen.classList.add('active');
+            }, 10);
+        }
+        
+        // إخفاء الزر نفسه
+        skipLoadingBtn.style.display = 'none';
+        
+        // إظهار رسالة
+        if (window.gameApp && window.gameApp.uiManager) {
+            window.gameApp.uiManager.showNotification('تم تخطي التحميل يدوياً ✅', 'info');
+        }
+    });
+    
+    // إضافة الزر بعد 3 ثوانٍ إذا ما زالت شاشة التحميل ظاهرة
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen && loadingScreen.classList.contains('active')) {
+            document.body.appendChild(skipLoadingBtn);
+        }
+    }, 3000);
+    
+    // ===== إصلاح تلقائي بعد 10 ثوانٍ =====
+    setTimeout(() => {
+        const loadingScreen = document.getElementById('loading-screen');
+        const authScreen = document.getElementById('auth-screen');
+        
+        if (loadingScreen && loadingScreen.classList.contains('active')) {
+            console.log('🔄 الإصلاح التلقائي: تخطي شاشة التحميل');
+            
+            // إخفاء شاشة التحميل
+            loadingScreen.style.display = 'none';
+            loadingScreen.classList.remove('active');
+            
+            // إظهار شاشة المصادقة
+            if (authScreen) {
+                authScreen.style.display = 'flex';
+                setTimeout(() => {
+                    authScreen.classList.add('active');
+                }, 10);
+            }
+            
+            // إخفاء زر التخطي اليدوي
+            const skipBtn = document.getElementById('manual-skip-loading');
+            if (skipBtn) {
+                skipBtn.style.display = 'none';
+            }
+            
+            // إظهار إشعار
+            if (window.gameApp && window.gameApp.uiManager) {
+                window.gameApp.uiManager.showNotification('تم التحميل تلقائياً ✅', 'success');
+            }
+        }
+    }, 10000); // 10 ثوانٍ
+    
+    // ===== تسجيل Service Worker =====
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('service-worker.js')
             .then(registration => {
@@ -668,13 +655,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     }
     
-    // إضافة حدث عند إغلاق الصفحة
-    window.addEventListener('beforeunload', (e) => {
-        if (window.gameApp?.gameEngine?.isGameActive) {
-            e.preventDefault();
-            e.returnValue = 'لديك لعبة نشطة! هل تريد الخروج؟';
-            return 'لديك لعبة نشطة! هل تريد الخروج؟';
-        }
+    // ===== منع الإجراءات غير المرغوب فيها =====
+    document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        return false;
+    });
+    
+    document.addEventListener('copy', (e) => {
+        e.preventDefault();
+        return false;
+    });
+    
+    document.addEventListener('cut', (e) => {
+        e.preventDefault();
+        return false;
+    });
+    
+    document.addEventListener('paste', (e) => {
+        e.preventDefault();
+        return false;
     });
 });
 
