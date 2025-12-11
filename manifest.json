@@ -1,8 +1,8 @@
 {
     "name": "المليونير الذهبية",
     "short_name": "المليونير",
-    "description": "تحدى ذكاءك للفوز بمليون دولار! لعبة مسابقة تفاعلية باللغة العربية",
-    "version": "5.0.0",
+    "description": "لعبة مسابقة الذكاء للفوز بمليون دولار",
+    "version": "1.0.0",
     "lang": "ar",
     "dir": "rtl",
     "start_url": "/",
@@ -10,45 +10,14 @@
     "orientation": "portrait",
     "background_color": "#1a1a2e",
     "theme_color": "#D4AF37",
-    "categories": ["games", "education", "entertainment"],
     "icons": [
         {
-            "src": "assets/icons/icon-72x72.png",
-            "sizes": "72x72",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "assets/icons/icon-96x96.png",
-            "sizes": "96x96",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "assets/icons/icon-128x128.png",
-            "sizes": "128x128",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "assets/icons/icon-144x144.png",
-            "sizes": "144x144",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "assets/icons/icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "assets/icons/icon-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any maskable"
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏆</text></svg>",
+            "sizes": "any",
+            "type": "image/svg+xml"
         }
     ],
+    "categories": ["games", "education", "entertainment"],
     "shortcuts": [
         {
             "name": "بدء لعبة جديدة",
@@ -61,25 +30,6 @@
             "short_name": "المتصدرون",
             "description": "شاهد أفضل اللاعبين",
             "url": "/?action=leaderboard"
-        },
-        {
-            "name": "الإعدادات",
-            "short_name": "إعدادات",
-            "description": "تخصيص اللعبة",
-            "url": "/?action=settings"
         }
-    ],
-    "features": [
-        "لعبة مسابقة تفاعلية بالكامل",
-        "أسئلة بمستويات صعوبة متزايدة",
-        "تصنيفات مختلفة",
-        "أدوات مساعدة ذكية",
-        "نظام نقاط وخبرة",
-        "لوحة متصدرين",
-        "تأثيرات بصرية وسمعية",
-        "واجهة ذهبية فريدة",
-        "دعم كامل للغة العربية",
-        "عمل دون اتصال"
-    ],
-    "display_override": ["window-controls-overlay", "minimal-ui"]
+    ]
 }
