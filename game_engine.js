@@ -1,31 +1,18 @@
-/**
- * 🎮 محرك اللعبة - المليونير الذهبية
- * يدير دورة اللعبة الكاملة والمنطق الأساسي
- */
-
+// 🎮 محرك اللعبة
 class GameEngine {
     constructor() {
         this.currentGame = null;
         this.timer = null;
         this.isActive = false;
-        this.init();
-    }
-    
-    /**
-     * تهيئة المحرك
-     */
-    init() {
         console.log('✅ محرك اللعبة جاهز');
     }
     
-    /**
-     * بدء لعبة جديدة
-     */
+    // بدء لعبة جديدة
     startNewGame(options = {}) {
-        // إعادة تعيين أي لعبة سابقة
+        // إيقاف أي لعبة سابقة
         this.stopGame();
         
-        // إنشاء لعبة جديدة
+        // إعدادات اللعبة
         this.currentGame = {
             id: 'game_' + Date.now(),
             status: 'active',
@@ -45,7 +32,7 @@ class GameEngine {
             timerEnabled: options.timerEnabled !== false
         };
         
-        // الحصول على الأسئلة
+        // تحميل الأسئلة
         if (window.questionManager) {
             this.currentGame.questions = window.questionManager.getGameQuestions(
                 this.currentGame.categories,
@@ -53,18 +40,18 @@ class GameEngine {
                 this.currentGame.totalQuestions
             );
         } else {
-            // أسئلة افتراضية في حالة عدم وجود مدير الأسئلة
+            // أسئلة افتراضية
             this.currentGame.questions = this.getDefaultQuestions();
         }
         
         this.isActive = true;
         
-        // بدء المؤقت إذا كان مفعلاً
+        // بدء المؤقت
         if (this.currentGame.timerEnabled) {
             this.startTimer();
         }
         
-        console.log('🎮 بدأت لعبة جديدة:', this.currentGame);
+        console.log('🎮 بدأت لعبة جديدة');
         
         return {
             success: true,
@@ -73,33 +60,21 @@ class GameEngine {
         };
     }
     
-    /**
-     * الحصول على الوقت حسب الصعوبة
-     */
+    // الحصول على الوقت حسب الصعوبة
     getTimeForDifficulty(difficulty) {
-        const times = {
-            easy: GameConfig.TIME_PER_QUESTION.EASY,
-            medium: GameConfig.TIME_PER_QUESTION.MEDIUM,
-            hard: GameConfig.TIME_PER_QUESTION.HARD
-        };
-        return times[difficulty] || 60;
+        const level = GameConfig.DIFFICULTY_LEVELS.find(l => l.id === difficulty);
+        return level ? level.time : 45;
     }
     
-    /**
-     * الحصول على أدوات المساعدة حسب الصعوبة
-     */
+    // الحصول على أدوات المساعدة حسب الصعوبة
     getLifelinesForDifficulty(difficulty) {
-        const levels = GameConfig.DIFFICULTY_LEVELS.find(l => l.id === difficulty);
-        return levels ? levels.lifelines : 2;
+        const level = GameConfig.DIFFICULTY_LEVELS.find(l => l.id === difficulty);
+        return level ? level.lifelines : 2;
     }
     
-    /**
-     * الحصول على السؤال الحالي
-     */
+    // الحصول على السؤال الحالي
     getCurrentQuestion() {
-        if (!this.currentGame || !this.isActive) {
-            return null;
-        }
+        if (!this.currentGame || !this.isActive) return null;
         
         if (this.currentGame.currentQuestion >= this.currentGame.questions.length) {
             return null;
@@ -111,25 +86,26 @@ class GameEngine {
             questionNumber: this.currentGame.currentQuestion + 1,
             totalQuestions: this.currentGame.totalQuestions,
             timeLeft: this.currentGame.timeLeft,
-            score: this.calculateCurrentScore()
+            score: this.getCurrentScore()
         };
     }
     
-    /**
-     * حساب النتيجة الحالية
-     */
-    calculateCurrentScore() {
+    // الحصول على النتيجة الحالية
+    getCurrentScore() {
         if (!this.currentGame) return 0;
         
-        const questionIndex = this.currentGame.currentQuestion;
-        if (questionIndex >= GameConfig.PRIZES.length) return this.currentGame.score;
+        let score = this.currentGame.score;
+        const currentQuestionIndex = this.currentGame.currentQuestion;
         
-        return this.currentGame.score + GameConfig.PRIZES[questionIndex];
+        // إضافة قيمة السؤال الحالي
+        if (currentQuestionIndex < GameConfig.PRIZES.length) {
+            score += GameConfig.PRIZES[currentQuestionIndex];
+        }
+        
+        return score;
     }
     
-    /**
-     * اختيار إجابة
-     */
+    // اختيار إجابة
     selectAnswer(answerIndex) {
         if (!this.isActive || !this.currentGame) {
             return { success: false, message: 'اللعبة غير نشطة' };
@@ -148,13 +124,13 @@ class GameEngine {
         
         // تحديث النتيجة
         if (isCorrect) {
-            this.currentGame.score += this.calculateQuestionPoints();
+            this.currentGame.score += this.getQuestionPoints();
             this.currentGame.correctAnswers++;
         }
         
         // تسجيل الإجابة
-        this.currentGame.questions[this.currentGame.currentQuestion].userAnswer = answerIndex;
-        this.currentGame.questions[this.currentGame.currentQuestion].isCorrect = isCorrect;
+        currentQuestion.userAnswer = answerIndex;
+        currentQuestion.isCorrect = isCorrect;
         
         return {
             success: true,
@@ -165,20 +141,16 @@ class GameEngine {
         };
     }
     
-    /**
-     * حساب نقاط السؤال الحالي
-     */
-    calculateQuestionPoints() {
+    // الحصول على نقاط السؤال الحالي
+    getQuestionPoints() {
         const questionIndex = this.currentGame.currentQuestion;
         if (questionIndex < GameConfig.PRIZES.length) {
             return GameConfig.PRIZES[questionIndex];
         }
-        return 100; // قيمة افتراضية
+        return 100;
     }
     
-    /**
-     * الانتقال للسؤال التالي
-     */
+    // الانتقال للسؤال التالي
     nextQuestion() {
         if (!this.isActive || !this.currentGame) {
             return { success: false, message: 'اللعبة غير نشطة' };
@@ -191,7 +163,7 @@ class GameEngine {
             return this.finishGame();
         }
         
-        // إعادة تعيين المؤقت
+        // إعادة تعيين الوقت
         this.currentGame.timeLeft = this.getTimeForDifficulty(this.currentGame.difficulty);
         
         // إعادة تشغيل المؤقت
@@ -205,9 +177,7 @@ class GameEngine {
         };
     }
     
-    /**
-     * استخدام أداة مساعدة
-     */
+    // استخدام أداة مساعدة
     useLifeline(lifelineId) {
         if (!this.isActive || !this.currentGame) {
             return { success: false, message: 'اللعبة غير نشطة' };
@@ -218,7 +188,7 @@ class GameEngine {
             return { success: false, message: 'لقد استخدمت جميع أدوات المساعدة' };
         }
         
-        // التحقق من عدم استخدام هذه الأداة مسبقاً
+        // التحقق من عدم استخدام الأداة مسبقاً
         if (this.currentGame.usedLifelines.includes(lifelineId)) {
             return { success: false, message: 'تم استخدام هذه الأداة مسبقاً' };
         }
@@ -247,9 +217,7 @@ class GameEngine {
         return result;
     }
     
-    /**
-     * استخدام أداة 50:50
-     */
+    // أداة 50:50
     useFiftyFifty(question) {
         const wrongAnswers = [];
         for (let i = 0; i < question.answers.length; i++) {
@@ -270,9 +238,7 @@ class GameEngine {
         };
     }
     
-    /**
-     * استخدام اتصال بصديق
-     */
+    // اتصال بصديق
     usePhoneFriend(question) {
         // محاكاة نصيحة الصديق
         const confidence = Math.random();
@@ -301,9 +267,7 @@ class GameEngine {
         };
     }
     
-    /**
-     * استخدام تصويت الجمهور
-     */
+    // تصويت الجمهور
     useAudiencePoll(question) {
         const percentages = [0, 0, 0, 0];
         
@@ -337,9 +301,7 @@ class GameEngine {
         };
     }
     
-    /**
-     * بدء المؤقت
-     */
+    // بدء المؤقت
     startTimer() {
         if (!this.currentGame || !this.currentGame.timerEnabled) return;
         
@@ -353,7 +315,7 @@ class GameEngine {
             
             this.currentGame.timeLeft--;
             
-            // إشعار عندما يقل الوقت
+            // تنبيه عندما يقل الوقت
             if (this.currentGame.timeLeft <= 10) {
                 // يمكن إضافة صوت تنبيه هنا
             }
@@ -365,9 +327,7 @@ class GameEngine {
         }, 1000);
     }
     
-    /**
-     * إيقاف المؤقت
-     */
+    // إيقاف المؤقت
     stopTimer() {
         if (this.timer) {
             clearInterval(this.timer);
@@ -375,27 +335,18 @@ class GameEngine {
         }
     }
     
-    /**
-     * معالجة انتهاء الوقت
-     */
+    // معالجة انتهاء الوقت
     handleTimeUp() {
         this.stopTimer();
         
         if (this.isActive && this.currentGame) {
-            // معالجة كأن المستخدم أجاب إجابة خاطئة
+            // معالجة كإجابة خاطئة
             const wrongAnswerIndex = (this.currentGame.questions[this.currentGame.currentQuestion].correct + 1) % 4;
             this.selectAnswer(wrongAnswerIndex);
-            
-            // إشعار بانتهاء الوقت
-            if (typeof this.onTimeUp === 'function') {
-                this.onTimeUp();
-            }
         }
     }
     
-    /**
-     * إنهاء اللعبة
-     */
+    // إنهاء اللعبة
     finishGame() {
         this.stopTimer();
         
@@ -429,27 +380,22 @@ class GameEngine {
         };
         
         console.log('🏁 انتهت اللعبة:', result);
-        
         return result;
     }
     
-    /**
-     * إيقاف اللعبة
-     */
+    // إيقاف اللعبة
     stopGame() {
         this.stopTimer();
         this.isActive = false;
         this.currentGame = null;
     }
     
-    /**
-     * الحصول على أسئلة افتراضية
-     */
+    // أسئلة افتراضية
     getDefaultQuestions() {
         return [
             {
                 question: 'ما هي عاصمة فرنسا؟',
-                answers: ['روما', 'لندن', 'باريس', 'برلين'],
+                answers: ['لندن', 'برلين', 'باريس', 'روما'],
                 correct: 2,
                 hint: 'تشتهر ببرج إيفل',
                 explanation: 'باريس هي عاصمة فرنسا',
@@ -470,9 +416,7 @@ class GameEngine {
         ];
     }
     
-    /**
-     * خلط مصفوفة
-     */
+    // خلط مصفوفة
     shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -483,7 +427,7 @@ class GameEngine {
     }
 }
 
-// التصدير للاستخدام
+// جعلها متاحة عالمياً
 if (typeof window !== 'undefined') {
     window.GameEngine = GameEngine;
 }
