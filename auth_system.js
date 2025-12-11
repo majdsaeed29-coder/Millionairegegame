@@ -1,6 +1,6 @@
 /**
- * نظام إدارة المستخدمين - ميليونير الذهبية
- * نظام تسجيل دخول وتسجيل حساب كامل
+ * 🔐 نظام المصادقة - المليونير الذهبية
+ * نظام تسجيل دخول وتسجيل كامل ومؤمن
  */
 
 class AuthSystem {
@@ -15,7 +15,7 @@ class AuthSystem {
      */
     init() {
         this.checkAutoLogin();
-        this.setupEventListeners();
+        console.log('✅ نظام المصادقة جاهز');
     }
     
     /**
@@ -23,10 +23,10 @@ class AuthSystem {
      */
     loadUsers() {
         try {
-            const usersData = localStorage.getItem('millionaire_users');
+            const usersData = localStorage.getItem(GameConfig.STORAGE_KEYS.USERS);
             return usersData ? JSON.parse(usersData) : {};
         } catch (error) {
-            console.error('خطأ في تحميل بيانات المستخدمين:', error);
+            console.error('❌ خطأ في تحميل المستخدمين:', error);
             return {};
         }
     }
@@ -36,10 +36,10 @@ class AuthSystem {
      */
     saveUsers() {
         try {
-            localStorage.setItem('millionaire_users', JSON.stringify(this.users));
+            localStorage.setItem(GameConfig.STORAGE_KEYS.USERS, JSON.stringify(this.users));
             return true;
         } catch (error) {
-            console.error('خطأ في حفظ بيانات المستخدمين:', error);
+            console.error('❌ خطأ في حفظ المستخدمين:', error);
             return false;
         }
     }
@@ -47,7 +47,7 @@ class AuthSystem {
     /**
      * تسجيل مستخدم جديد
      */
-    register(username, password, email = '') {
+    register(username, password, email = '', isAdmin = false) {
         // التحقق من صحة المدخلات
         const validation = this.validateRegistration(username, password, email);
         if (!validation.isValid) {
@@ -61,15 +61,17 @@ class AuthSystem {
         if (this.users[username]) {
             return {
                 success: false,
-                message: 'اسم المستخدم موجود مسبقاً!'
+                message: 'اسم المستخدم موجود مسبقاً'
             };
         }
         
         // إنشاء مستخدم جديد
         const newUser = {
+            id: 'user_' + Date.now(),
             username: username.trim(),
             password: this.hashPassword(password),
             email: email.trim(),
+            isAdmin: isAdmin,
             createdAt: new Date().toISOString(),
             lastLogin: new Date().toISOString(),
             stats: {
@@ -87,13 +89,18 @@ class AuthSystem {
             settings: {
                 sound: true,
                 music: true,
-                vibrations: true,
+                vibration: true,
                 notifications: true,
                 theme: 'dark',
                 language: 'ar'
             },
             balance: GameConfig.INITIAL_BALANCE,
             lifelines: GameConfig.INITIAL_LIFELINES,
+            subscription: {
+                type: 'free',
+                adsEnabled: true,
+                expiresAt: null
+            },
             unlockedCategories: ['general']
         };
         
@@ -104,18 +111,12 @@ class AuthSystem {
         if (!saved) {
             return {
                 success: false,
-                message: 'خطأ في حفظ البيانات!'
+                message: 'خطأ في حفظ البيانات'
             };
         }
         
         // تسجيل الدخول تلقائياً
-        this.login(username, password);
-        
-        return {
-            success: true,
-            message: 'تم إنشاء الحساب بنجاح! 🎉',
-            user: newUser
-        };
+        return this.login(username, password);
     }
     
     /**
@@ -127,16 +128,16 @@ class AuthSystem {
         if (!user) {
             return {
                 success: false,
-                message: 'اسم المستخدم أو كلمة السر غير صحيحة!'
+                message: 'اسم المستخدم أو كلمة المرور غير صحيحة'
             };
         }
         
-        // التحقق من كلمة السر
+        // التحقق من كلمة المرور
         const hashedPassword = this.hashPassword(password);
         if (user.password !== hashedPassword) {
             return {
                 success: false,
-                message: 'اسم المستخدم أو كلمة السر غير صحيحة!'
+                message: 'اسم المستخدم أو كلمة المرور غير صحيحة'
             };
         }
         
@@ -149,9 +150,11 @@ class AuthSystem {
         this.currentUser = user;
         this.saveSession(user);
         
+        console.log(`✅ تم تسجيل الدخول: ${username}`);
+        
         return {
             success: true,
-            message: 'تم تسجيل الدخول بنجاح! 👋',
+            message: 'تم تسجيل الدخول بنجاح',
             user: user
         };
     }
@@ -162,9 +165,10 @@ class AuthSystem {
     logout() {
         this.clearSession();
         this.currentUser = null;
+        console.log('✅ تم تسجيل الخروج');
         return {
             success: true,
-            message: 'تم تسجيل الخروج بنجاح!'
+            message: 'تم تسجيل الخروج بنجاح'
         };
     }
     
@@ -173,7 +177,7 @@ class AuthSystem {
      */
     checkAutoLogin() {
         try {
-            const sessionData = localStorage.getItem('millionaire_session');
+            const sessionData = localStorage.getItem(GameConfig.STORAGE_KEYS.SESSION);
             if (sessionData) {
                 const session = JSON.parse(sessionData);
                 const user = this.users[session.username];
@@ -190,7 +194,7 @@ class AuthSystem {
                 }
             }
         } catch (error) {
-            console.error('خطأ في التحقق من الجلسة:', error);
+            console.error('❌ خطأ في الجلسة:', error);
         }
         
         return false;
@@ -204,14 +208,14 @@ class AuthSystem {
             username: user.username,
             timestamp: Date.now()
         };
-        localStorage.setItem('millionaire_session', JSON.stringify(session));
+        localStorage.setItem(GameConfig.STORAGE_KEYS.SESSION, JSON.stringify(session));
     }
     
     /**
      * مسح بيانات الجلسة
      */
     clearSession() {
-        localStorage.removeItem('millionaire_session');
+        localStorage.removeItem(GameConfig.STORAGE_KEYS.SESSION);
     }
     
     /**
@@ -243,29 +247,22 @@ class AuthSystem {
         if (!username || username.trim().length < GameConfig.SECURITY.USERNAME_MIN_LENGTH) {
             return {
                 isValid: false,
-                message: `اسم المستخدم يجب أن يكون ${GameConfig.SECURITY.USERNAME_MIN_LENGTH} أحرف على الأقل!`
+                message: `اسم المستخدم يجب أن يكون ${GameConfig.SECURITY.USERNAME_MIN_LENGTH} أحرف على الأقل`
             };
         }
         
         if (username.trim().length > GameConfig.SECURITY.USERNAME_MAX_LENGTH) {
             return {
                 isValid: false,
-                message: `اسم المستخدم يجب ألا يتجاوز ${GameConfig.SECURITY.USERNAME_MAX_LENGTH} حرف!`
+                message: `اسم المستخدم يجب ألا يتجاوز ${GameConfig.SECURITY.USERNAME_MAX_LENGTH} أحرف`
             };
         }
         
-        if (!/^[a-zA-Z0-9_\u0600-\u06FF]+$/.test(username)) {
-            return {
-                isValid: false,
-                message: 'اسم المستخدم يمكن أن يحتوي على أحرف عربية، إنجليزية، أرقام و _ فقط!'
-            };
-        }
-        
-        // التحقق من كلمة السر
+        // التحقق من كلمة المرور
         if (!password || password.length < GameConfig.SECURITY.PASSWORD_MIN_LENGTH) {
             return {
                 isValid: false,
-                message: `كلمة السر يجب أن تكون ${GameConfig.SECURITY.PASSWORD_MIN_LENGTH} أحرف على الأقل!`
+                message: `كلمة المرور يجب أن تكون ${GameConfig.SECURITY.PASSWORD_MIN_LENGTH} أحرف على الأقل`
             };
         }
         
@@ -275,19 +272,19 @@ class AuthSystem {
             if (!emailRegex.test(email.trim())) {
                 return {
                     isValid: false,
-                    message: 'البريد الإلكتروني غير صحيح!'
+                    message: 'البريد الإلكتروني غير صحيح'
                 };
             }
         }
         
         return {
             isValid: true,
-            message: 'جميع البيانات صحيحة!'
+            message: 'جميع البيانات صحيحة'
         };
     }
     
     /**
-     * تشفير كلمة السر (نسخة مبسطة)
+     * تشفير كلمة المرور
      */
     hashPassword(password) {
         // في الإنتاج الحقيقي، استخدم مكتبة مثل bcrypt.js
@@ -315,21 +312,34 @@ class AuthSystem {
     }
     
     /**
-     * إعداد مستمعي الأحداث
+     * التحقق من صلاحيات المدير
      */
-    setupEventListeners() {
-        // إعادة تحميل المستخدمين عند تحديث الصفحة
-        window.addEventListener('beforeunload', () => {
-            this.saveUsers();
-        });
+    isAdmin() {
+        return this.currentUser && this.currentUser.isAdmin === true;
+    }
+    
+    /**
+     * تحديث رصيد المستخدم
+     */
+    updateBalance(username, amount) {
+        const user = this.users[username];
+        if (!user) return false;
+        
+        user.balance += amount;
+        if (user.balance < 0) user.balance = 0;
+        
+        return this.updateUser(username, { balance: user.balance });
+    }
+    
+    /**
+     * الحصول على جميع المستخدمين (للمدير)
+     */
+    getAllUsers() {
+        return Object.values(this.users);
     }
 }
 
 // التصدير للاستخدام
 if (typeof window !== 'undefined') {
     window.AuthSystem = AuthSystem;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AuthSystem;
 }
