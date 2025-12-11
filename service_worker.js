@@ -1,12 +1,8 @@
-/**
- * ⚙️ Service Worker - المليونير الذهبية
- * لتطبيق ويب تقدمي وعمل دون اتصال
- */
+// ⚙️ Service Worker
+const CACHE_NAME = 'millionaire-gold-v1';
+const CACHE_VERSION = '1.0.0';
 
-const CACHE_NAME = 'millionaire-gold-v5.0';
-const CACHE_VERSION = '5.0.0';
-
-// الملفات التي سيتم تخزينها مؤقتاً
+// الملفات التي سيتم تخزينها
 const CACHE_URLS = [
     '/',
     '/index.html',
@@ -15,6 +11,7 @@ const CACHE_URLS = [
     '/js/auth-system.js',
     '/js/question-manager.js',
     '/js/game-engine.js',
+    '/js/ui-manager.js',
     '/js/admin-panel.js',
     '/js/app.js',
     '/manifest.json'
@@ -65,7 +62,7 @@ self.addEventListener('activate', event => {
 
 // اعتراض الطلبات
 self.addEventListener('fetch', event => {
-    // استثناء طلبات API
+    // تجاهل طلبات API الخارجية
     if (event.request.url.includes('/api/') || 
         event.request.url.includes('googleapis.com') || 
         event.request.url.includes('cdnjs.cloudflare.com')) {
@@ -75,7 +72,7 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // إذا وجد الملف في التخزين المؤقت
+                // إذا وجد الملف في التخزين
                 if (response) {
                     return response;
                 }
@@ -100,7 +97,7 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // في حالة فشل الاتصال
+                        // في حالة عدم الاتصال
                         if (event.request.mode === 'navigate') {
                             return caches.match('/index.html');
                         }
@@ -118,12 +115,5 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
     if (event.data.action === 'skipWaiting') {
         self.skipWaiting();
-    }
-    
-    if (event.data.action === 'getVersion') {
-        event.ports[0].postMessage({
-            version: CACHE_VERSION,
-            cacheName: CACHE_NAME
-        });
     }
 });
