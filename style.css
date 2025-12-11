@@ -1848,3 +1848,34 @@ input:checked + .slider:before {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--gold-secondary);
 }
+/* ===== إصلاحات التحميل ===== */
+.loading-screen {
+    z-index: 10000 !important;
+}
+
+.loading-screen.active {
+    animation: fadeIn 0.5s ease !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ضمان ظهور العناصر */
+#app-container {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* منع أي تأثيرات تخفي */
+.screen {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+/* تحسينات للأداء */
+* {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.3s !important;
+}
