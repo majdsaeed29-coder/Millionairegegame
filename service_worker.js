@@ -1,4 +1,4 @@
-// ⚙️ Service Worker
+// Service Worker
 const CACHE_NAME = 'millionaire-gold-v1';
 const CACHE_VERSION = '1.0.0';
 
@@ -14,17 +14,19 @@ const CACHE_URLS = [
     '/js/ui-manager.js',
     '/js/admin-panel.js',
     '/js/app.js',
-    '/manifest.json'
+    '/manifest.json',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+    'https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=El+Messiri:wght@400;500;600;700&display=swap'
 ];
 
 // التثبيت
 self.addEventListener('install', event => {
-    console.log('🔧 Service Worker: جاري التثبيت');
+    console.log('🛠️ Service Worker: جاري التثبيت...');
     
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('💾 Service Worker: جاري تخزين الملفات');
+                console.log('📦 Service Worker: جاري تخزين الملفات...');
                 return cache.addAll(CACHE_URLS);
             })
             .then(() => {
@@ -32,14 +34,14 @@ self.addEventListener('install', event => {
                 return self.skipWaiting();
             })
             .catch(error => {
-                console.error('❌ Service Worker: خطأ في التثبيت:', error);
+                console.error('❌ Service Worker: خطأ في التثبيت', error);
             })
     );
 });
 
 // التنشيط
 self.addEventListener('activate', event => {
-    console.log('🚀 Service Worker: جاري التنشيط');
+    console.log('🔧 Service Worker: جاري التنشيط...');
     
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -47,7 +49,7 @@ self.addEventListener('activate', event => {
                 cacheNames.map(cacheName => {
                     // حذف التخزينات القديمة
                     if (cacheName !== CACHE_NAME) {
-                        console.log('🗑️ Service Worker: جاري حذف التخزين القديم:', cacheName);
+                        console.log(`🗑️ Service Worker: جاري حذف التخزين القديم: ${cacheName}`);
                         return caches.delete(cacheName);
                     }
                 })
@@ -97,12 +99,12 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // في حالة عدم الاتصال
+                        // حالة عدم الاتصال
                         if (event.request.mode === 'navigate') {
                             return caches.match('/index.html');
                         }
                         
-                        return new Response('لا يوجد اتصال بالإنترنت', {
+                        return new Response('تعذر الاتصال بالإنترنت', {
                             status: 408,
                             headers: { 'Content-Type': 'text/plain; charset=utf-8' }
                         });
