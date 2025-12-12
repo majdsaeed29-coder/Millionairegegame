@@ -1,4 +1,4 @@
-// ❓ مدير الأسئلة
+// مدير الأسئلة
 class QuestionManager {
     constructor() {
         this.categories = {};
@@ -7,7 +7,7 @@ class QuestionManager {
         this.loadQuestions();
         console.log('✅ مدير الأسئلة جاهز');
     }
-    
+
     // تهيئة التصنيفات
     initializeCategories() {
         GameConfig.CATEGORIES.forEach(category => {
@@ -21,7 +21,7 @@ class QuestionManager {
             };
         });
     }
-    
+
     // تحميل الأسئلة
     loadQuestions() {
         try {
@@ -35,21 +35,21 @@ class QuestionManager {
         } catch (error) {
             console.error('❌ خطأ في تحميل الأسئلة:', error);
         }
-        
+
         // إنشاء أسئلة افتراضية إذا لم توجد
         this.createDefaultQuestions();
     }
-    
+
     // إنشاء أسئلة افتراضية
     createDefaultQuestions() {
-        // أسئلة ثقافة عامة
+        // أسئلة عامة سهلة
         this.addQuestions('general', 'easy', [
             {
                 question: 'ما هي عاصمة فرنسا؟',
-                answers: ['لندن', 'برلين', 'باريس', 'روما'],
-                correct: 2,
+                answers: ['روما', 'باريس', 'برلين', 'لندن'],
+                correct: 1,
                 hint: 'تشتهر ببرج إيفل',
-                explanation: 'باريس هي عاصمة فرنسا وأشهر مدنها'
+                explanation: 'باريس هي عاصمة فرنسا'
             },
             {
                 question: 'كم عدد أيام الأسبوع؟',
@@ -60,56 +60,57 @@ class QuestionManager {
             },
             {
                 question: 'ما هو لون التفاحة الناضجة؟',
-                answers: ['أخضر', 'أحمر', 'أصفر', 'برتقالي'],
-                correct: 1,
+                answers: ['برتقالي', 'أصفر', 'أحمر', 'أخضر'],
+                correct: 2,
                 hint: 'لون شائع للفواكه',
                 explanation: 'معظم التفاح الناضج يكون أحمر'
             }
         ]);
-        
+
+        // أسئلة عامة متوسطة
         this.addQuestions('general', 'medium', [
             {
                 question: 'من هو مؤلف كتاب "الأمير"؟',
-                answers: ['أرسطو', 'ميكافيلي', 'أفلاطون', 'شكسبير'],
-                correct: 1,
+                answers: ['شكسبير', 'أفلاطون', 'ميكافيلي', 'أرسطو'],
+                correct: 2,
                 hint: 'كاتب إيطالي من عصر النهضة',
                 explanation: 'نيكولو ميكافيلي فيلسوف وكاتب إيطالي'
             }
         ]);
-        
-        // أسئلة التاريخ
+
+        // أسئلة تاريخية
         this.addQuestions('history', 'easy', [
             {
                 question: 'في أي سنة هجرية حدثت معركة بدر؟',
-                answers: ['سنة 1 هـ', 'سنة 2 هـ', 'سنة 3 هـ', 'سنة 4 هـ'],
-                correct: 1,
+                answers: ['سنة 4 هـ', 'سنة 3 هـ', 'سنة 2 هـ', 'سنة 1 هـ'],
+                correct: 2,
                 hint: 'في العام الثاني للهجرة',
                 explanation: 'حدثت معركة بدر الكبرى في السنة الثانية للهجرة'
             }
         ]);
-        
-        // أسئلة الجغرافيا
+
+        // أسئلة جغرافية
         this.addQuestions('geography', 'easy', [
             {
                 question: 'ما هي أكبر دولة في العالم من حيث المساحة؟',
                 answers: ['الولايات المتحدة', 'الصين', 'كندا', 'روسيا'],
                 correct: 3,
                 hint: 'تمتد بين قارتي أوروبا وآسيا',
-                explanation: 'روسيا هي أكبر دولة في العالم بمساحة 17 مليون كم²'
+                explanation: 'روسيا تبلغ مساحتها حوالي 17 مليون كم²'
             }
         ]);
-        
+
         // حفظ الأسئلة
         this.saveQuestions();
     }
-    
+
     // إضافة أسئلة
     addQuestions(categoryId, difficulty, questions) {
         if (!this.categories[categoryId]) {
             console.error(`❌ التصنيف ${categoryId} غير موجود`);
             return;
         }
-        
+
         questions.forEach((q, index) => {
             const questionId = `${categoryId}_${difficulty}_${Date.now()}_${index}`;
             const fullQuestion = {
@@ -124,17 +125,16 @@ class QuestionManager {
                 points: this.getPointsForDifficulty(difficulty),
                 createdAt: new Date().toISOString()
             };
-            
             this.categories[categoryId].questions[difficulty].push(fullQuestion);
         });
     }
-    
+
     // الحصول على نقاط حسب الصعوبة
     getPointsForDifficulty(difficulty) {
         const points = { easy: 100, medium: 300, hard: 500 };
         return points[difficulty] || 100;
     }
-    
+
     // حفظ الأسئلة
     saveQuestions() {
         try {
@@ -149,64 +149,63 @@ class QuestionManager {
             return false;
         }
     }
-    
+
     // الحصول على سؤال عشوائي
     getRandomQuestion(categoryId, difficulty) {
         if (!this.categories[categoryId] || !this.categories[categoryId].questions[difficulty]) {
             return this.getFallbackQuestion();
         }
-        
+
         const questions = this.categories[categoryId].questions[difficulty];
         const availableQuestions = questions.filter(q => !this.usedQuestions.has(q.id));
-        
+
         if (availableQuestions.length === 0) {
-            // إعادة استخدام الأسئلة إذا نفدت
+            // إعادة استخدام إذا نفدت الأسئلة
             this.usedQuestions.clear();
             return this.getRandomQuestion(categoryId, difficulty);
         }
-        
+
         const randomIndex = Math.floor(Math.random() * availableQuestions.length);
         const question = availableQuestions[randomIndex];
-        
         this.usedQuestions.add(question.id);
         return question;
     }
-    
+
     // الحصول على أسئلة للعبة
     getGameQuestions(categories, difficulty, count = 15) {
         const questions = [];
-        
+
         // توزيع الأسئلة
-        const easyCount = Math.floor(count * 0.5);  // 50% سهلة
-        const mediumCount = Math.floor(count * 0.3); // 30% متوسطة
+        const easyCount = Math.floor(count * 0.5);     // 50% سهلة
+        const mediumCount = Math.floor(count * 0.3);   // 30% متوسطة
         const hardCount = count - easyCount - mediumCount; // 20% صعبة
-        
-        // أسئلة سهلة
+
+        // جمع الأسئلة السهلة
         for (let i = 0; i < easyCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'easy');
             if (question) questions.push(question);
         }
-        
-        // أسئلة متوسطة
+
+        // جمع الأسئلة المتوسطة
         for (let i = 0; i < mediumCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'medium');
             if (question) questions.push(question);
         }
-        
-        // أسئلة صعبة
+
+        // جمع الأسئلة الصعبة
         for (let i = 0; i < hardCount; i++) {
             const randomCategory = categories[Math.floor(Math.random() * categories.length)];
             const question = this.getRandomQuestion(randomCategory, 'hard');
             if (question) questions.push(question);
         }
-        
+
         // خلط الأسئلة
         return this.shuffleArray(questions).slice(0, count);
     }
-    
-    // خلط الأسئلة
+
+    // خلط المصفوفة
     shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -215,14 +214,14 @@ class QuestionManager {
         }
         return shuffled;
     }
-    
+
     // سؤال افتراضي
     getFallbackQuestion() {
         return {
             id: 'fallback',
             question: 'ما هي عاصمة فرنسا؟',
-            answers: ['لندن', 'برلين', 'باريس', 'روما'],
-            correct: 2,
+            answers: ['روما', 'باريس', 'برلين', 'لندن'],
+            correct: 1,
             hint: 'تشتهر ببرج إيفل',
             explanation: 'باريس هي عاصمة فرنسا',
             category: 'general',
@@ -230,11 +229,10 @@ class QuestionManager {
             points: 100
         };
     }
-    
+
     // الحصول على جميع الأسئلة
     getAllQuestions() {
         const allQuestions = [];
-        
         for (const categoryId in this.categories) {
             for (const difficulty in this.categories[categoryId].questions) {
                 this.categories[categoryId].questions[difficulty].forEach(q => {
@@ -245,10 +243,9 @@ class QuestionManager {
                 });
             }
         }
-        
         return allQuestions;
     }
-    
+
     // البحث في الأسئلة
     searchQuestions(query) {
         const results = [];
@@ -267,10 +264,9 @@ class QuestionManager {
                 });
             }
         }
-        
         return results;
     }
-    
+
     // إضافة سؤال جديد
     addQuestion(questionData) {
         const questionId = `${questionData.category}_${questionData.difficulty}_${Date.now()}`;
@@ -287,16 +283,16 @@ class QuestionManager {
             points: this.getPointsForDifficulty(questionData.difficulty),
             createdAt: new Date().toISOString()
         };
-        
+
         if (!this.categories[questionData.category]) {
             console.error('❌ التصنيف غير موجود');
             return false;
         }
-        
+
         this.categories[questionData.category].questions[questionData.difficulty].push(newQuestion);
         return this.saveQuestions();
     }
-    
+
     // حذف سؤال
     deleteQuestion(questionId) {
         for (const categoryId in this.categories) {
@@ -310,17 +306,16 @@ class QuestionManager {
                 }
             }
         }
-        
         return false;
     }
-    
+
     // إعادة تعيين الأسئلة المستخدمة
     resetUsedQuestions() {
         this.usedQuestions.clear();
     }
 }
 
-// جعلها متاحة عالمياً
+// تصدير عام عالمياً
 if (typeof window !== 'undefined') {
     window.QuestionManager = QuestionManager;
 }
