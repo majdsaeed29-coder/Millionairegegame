@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة المليونير الذهبية 🏆</title>
+    <title>لعبة المليونير الذهبية</title>
     
-    <!-- خطوط -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,30 +18,19 @@
     
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D4AF37">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
         /* تحميل أولي */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: white;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
         #loading {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -74,6 +63,25 @@
         #app {
             display: none;
         }
+        
+        .skip-loading {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #D4AF37;
+            color: black;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+        
+        .skip-loading:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -81,9 +89,7 @@
     <div id="loading">
         <div class="loader"></div>
         <div class="loading-text">جاري تحميل المليونير الذهبية...</div>
-        <button id="skip-loading" style="margin-top: 30px; padding: 10px 25px; background: #D4AF37; color: black; border: none; border-radius: 25px; font-weight: bold; cursor: pointer;">
-            تخطي التحميل
-        </button>
+        <button class="skip-loading" id="skip-loading">تخطي التحميل</button>
     </div>
     
     <!-- التطبيق الرئيسي -->
@@ -98,13 +104,13 @@
     <script src="js/admin-panel.js"></script>
     <script src="js/app.js"></script>
     
-    <!-- تهيئة مباشرة -->
+    <!-- تهيئة التطبيق -->
     <script>
         // بعد تحميل الصفحة
-        window.addEventListener('load', function() {
+        window.addEventListener('DOMContentLoaded', function() {
             console.log('✅ الصفحة محملة');
             
-            // إخفاء التحميل بعد 2 ثانية
+            // إخفاء التحميل بعد 2 ثانية أو عندما تكون الصفحة جاهزة
             setTimeout(function() {
                 document.getElementById('loading').style.opacity = '0';
                 setTimeout(function() {
@@ -126,16 +132,26 @@
             document.getElementById('skip-loading').addEventListener('click', function() {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('app').style.display = 'block';
-                window.gameApp = new MillionaireApp();
+                try {
+                    window.gameApp = new MillionaireApp();
+                } catch (error) {
+                    console.error('❌ خطأ في بدء التطبيق:', error);
+                    alert('حدث خطأ في بدء التطبيق. يرجى تحديث الصفحة (F5)');
+                    window.location.reload();
+                }
             });
+            
+            // تسجيل Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker مسجل بنجاح:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ فشل تسجيل Service Worker:', error);
+                    });
+            }
         });
-        
-        // خدمة Worker للتطبيق
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(() => console.log('✅ Service Worker مسجل'))
-                .catch(err => console.log('❌ Service Worker فشل:', err));
-        }
     </script>
 </body>
 </html>
