@@ -3,83 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة المليونير الذهبية</title>
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=El+Messiri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#D4AF37">
+    <title>المليونير الذهبي</title>
     
     <style>
-        /* تحميل أولي */
+        /* تنسيقات أساسية */
+        body {
+            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            direction: rtl;
+        }
+        
         #loading {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #0c2461 0%, #1e3799 100%);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: inherit;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s;
         }
         
         .loader {
-            width: 80px;
-            height: 80px;
-            border: 5px solid rgba(212, 175, 55, 0.3);
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 215, 0, 0.3);
             border-radius: 50%;
-            border-top-color: #D4AF37;
+            border-top-color: #FFD700;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        .loading-text {
-            font-size: 1.5rem;
-            color: #FFD700;
-            margin-top: 20px;
-            text-align: center;
-            font-family: 'Tajawal', sans-serif;
-        }
-        
         #app {
             display: none;
+            width: 100%;
+            min-height: 100vh;
         }
         
-        .skip-loading {
-            margin-top: 30px;
-            padding: 12px 30px;
-            background: #D4AF37;
+        .screen {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .auth-box {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            margin: 50px auto;
+            border: 2px solid #FFD700;
+        }
+        
+        .btn {
+            background: #FFD700;
             color: black;
             border: none;
-            border-radius: 25px;
-            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            width: 100%;
+            margin-top: 20px;
             cursor: pointer;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            transition: 0.3s;
+            font-weight: bold;
         }
         
-        .skip-loading:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #FFD700;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -87,91 +97,151 @@
     <!-- شاشة التحميل -->
     <div id="loading">
         <div class="loader"></div>
-        <div class="loading-text">جاري تحميل المليونير الذهبية...</div>
-        <button class="skip-loading" id="skip-loading">تخطي التحميل</button>
+        <div style="margin-top: 20px; font-size: 18px; color: #FFD700;" id="loading-text">
+            جاري التحميل...
+        </div>
     </div>
     
-    <!-- التطبيق الرئيسي -->
-    <div id="app"></div>
-    
-    <!-- الملفات JavaScript بالترتيب الصحيح -->
-    <script>
-        // حل مؤقت لضمان تحميل الملفات بالترتيب
-        function loadScript(src, onLoad) {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = onLoad;
-            script.onerror = function() {
-                console.error('❌ فشل تحميل الملف: ' + src);
-            };
-            document.body.appendChild(script);
-        }
-
-        // عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ الصفحة محملة');
-            
-            // تحميل الملفات بالترتيب
-            loadScript('js/config.js', function() {
-                console.log('✅ config.js محمل');
+    <!-- التطبيق -->
+    <div id="app">
+        <!-- شاشة الدخول -->
+        <div id="auth-screen" class="screen active">
+            <div class="auth-box">
+                <h1 style="text-align: center; color: #FFD700;">المليونير الذهبي</h1>
+                <p style="text-align: center; color: #aaa;">اختبر ذكاءك واربح مليون دولار</p>
                 
-                loadScript('js/auth-system.js', function() {
-                    console.log('✅ auth-system.js محمل');
-                    
-                    loadScript('js/question-manager.js', function() {
-                        console.log('✅ question-manager.js محمل');
-                        
-                        loadScript('js/game-engine.js', function() {
-                            console.log('✅ game-engine.js محمل');
-                            
-                            loadScript('js/ui-manager.js', function() {
-                                console.log('✅ ui-manager.js محمل');
-                                
-                                loadScript('js/admin-panel.js', function() {
-                                    console.log('✅ admin-panel.js محمل');
-                                    
-                                    loadScript('js/app.js', function() {
-                                        console.log('✅ app.js محمل');
-                                        
-                                        // إخفاء شاشة التحميل
-                                        document.getElementById('loading').style.opacity = '0';
-                                        setTimeout(function() {
-                                            document.getElementById('loading').style.display = 'none';
-                                            document.getElementById('app').style.display = 'block';
-                                            
-                                            // بدء التطبيق
-                                            try {
-                                                if (typeof MillionaireApp !== 'undefined') {
-                                                    window.gameApp = new MillionaireApp();
-                                                    console.log('🎮 التطبيق بدأ بنجاح!');
-                                                } else {
-                                                    throw new Error('MillionaireApp غير معرف');
-                                                }
-                                            } catch (error) {
-                                                console.error('❌ خطأ في بدء التطبيق:', error);
-                                                document.getElementById('loading').style.display = 'flex';
-                                                document.getElementById('loading').innerHTML = `
-                                                    <div style="text-align: center;">
-                                                        <div style="color: #e74c3c; font-size: 3rem;">❌</div>
-                                                        <div class="loading-text">حدث خطأ في تحميل التطبيق</div>
-                                                        <div style="color: #aaa; margin: 20px 0;">${error.message}</div>
-                                                        <button class="skip-loading" onclick="window.location.reload()">إعادة التحميل</button>
-                                                    </div>
-                                                `;
-                                            }
-                                        }, 500);
-                                    });
-                                });
-                            });
-                        });
-                    });
-                });
-            });
+                <div>
+                    <input type="text" id="username" class="form-control" placeholder="اسم المستخدم">
+                    <input type="password" id="password" class="form-control" placeholder="كلمة المرور">
+                    <button class="btn" id="login-btn">دخول</button>
+                    <button class="btn" id="register-btn" style="background: #4a69bd; color: white;">تسجيل جديد</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- القائمة الرئيسية -->
+        <div id="menu-screen" class="screen">
+            <div style="padding: 20px;">
+                <h1 id="welcome" style="color: #FFD700;">مرحباً!</h1>
+                <div style="display: grid; gap: 15px; margin-top: 30px;">
+                    <button class="btn" id="play-btn">🎮 بدء اللعبة</button>
+                    <button class="btn" id="how-to-btn">❓ كيف تلعب</button>
+                    <button class="btn" id="settings-btn">⚙️ الإعدادات</button>
+                    <button class="btn" id="logout-btn" style="background: #e74c3c;">🚪 خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // أبسط إصدارة للتطبيق تعمل فوراً
+        class SimpleMillionaireApp {
+            constructor() {
+                console.log('🚀 التطبيق يبدأ...');
+                this.init();
+            }
             
-            // زر تخطي التحميل
-            document.getElementById('skip-loading').addEventListener('click', function() {
-                location.reload();
-            });
+            init() {
+                // إخفاء شاشة التحميل بعد 1 ثانية
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    document.getElementById('loading-text').textContent = '✅ جاهز!';
+                    
+                    this.setupEvents();
+                    this.showMessage('مرحباً في المليونير الذهبي!');
+                }, 1000);
+            }
+            
+            setupEvents() {
+                // زر الدخول
+                document.getElementById('login-btn').onclick = () => {
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    if(username && password) {
+                        this.login(username, password);
+                    } else {
+                        this.showMessage('أدخل اسم المستخدم وكلمة المرور');
+                    }
+                };
+                
+                // زر التسجيل
+                document.getElementById('register-btn').onclick = () => {
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+                    
+                    if(username && password) {
+                        this.register(username, password);
+                    } else {
+                        this.showMessage('أدخل بيانات التسجيل');
+                    }
+                };
+                
+                // زر اللعب
+                document.getElementById('play-btn').onclick = () => {
+                    this.startGame();
+                };
+                
+                // زر التعليمات
+                document.getElementById('how-to-btn').onclick = () => {
+                    this.showMessage('📖 قواعد اللعبة:\n1. اجمع مليون دولار\n2. أجب على 15 سؤالاً\n3. لكل سؤال جائزة\n4. لديك 3 مساعدات');
+                };
+                
+                // زر الإعدادات
+                document.getElementById('settings-btn').onclick = () => {
+                    this.showMessage('⚙️ الإعدادات قريباً...');
+                };
+                
+                // زر الخروج
+                document.getElementById('logout-btn').onclick = () => {
+                    this.logout();
+                };
+            }
+            
+            login(username, password) {
+                this.showMessage(`مرحباً ${username}!`);
+                this.showScreen('menu');
+                document.getElementById('welcome').textContent = `مرحباً ${username}!`;
+            }
+            
+            register(username, password) {
+                this.showMessage(`تم تسجيل ${username} بنجاح!`);
+                this.showScreen('menu');
+                document.getElementById('welcome').textContent = `مرحباً ${username}!`;
+            }
+            
+            logout() {
+                this.showScreen('auth');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                this.showMessage('تم الخروج بنجاح');
+            }
+            
+            startGame() {
+                this.showMessage('🎮 اللعبة تبدأ قريباً...');
+                // هنا يمكنك إضافة شاشة اللعبة الحقيقية
+            }
+            
+            showScreen(screenName) {
+                // إخفاء جميع الشاشات
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // إظهار الشاشة المطلوبة
+                document.getElementById(screenName + '-screen').classList.add('active');
+            }
+            
+            showMessage(msg) {
+                // عرض رسالة بسيطة
+                alert(msg);
+            }
+        }
+        
+        // بدء التطبيق عندما تحمّل الصفحة
+        window.addEventListener('load', () => {
+            new SimpleMillionaireApp();
         });
     </script>
 </body>
