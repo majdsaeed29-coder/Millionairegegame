@@ -5,22 +5,22 @@
     --gold-secondary: #FFD700;
     --gold-light: #F5E8AA;
     --gold-dark: #B8860B;
-    
+
     /* الألوان الأساسية */
     --navy-dark: #0c2461;
     --navy-medium: #1e3799;
     --navy-light: #4a69bd;
-    
-    /* ألوان الحالة */
+
+    /* الألوان الحالة */
     --success: #27ae60;
     --error: #e74c3c;
     --warning: #f39c12;
     --info: #3498db;
-    
+
     /* الظلال */
     --shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     --shadow-gold: 0 0 20px rgba(212, 175, 55, 0.5);
-    
+
     /* التدوير */
     --radius: 15px;
     --radius-lg: 25px;
@@ -40,6 +40,7 @@ body {
     min-height: 100vh;
     direction: rtl;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 /* ===== الشاشات ===== */
@@ -90,6 +91,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     border-bottom: 3px solid transparent;
+    transition: all 0.3s;
 }
 
 .auth-tab.active {
@@ -174,6 +176,11 @@ body {
     color: white;
 }
 
+.btn-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
 /* ===== القائمة الرئيسية ===== */
 .main-menu-screen .menu-container {
     max-width: 1200px;
@@ -205,6 +212,12 @@ body {
     border-radius: var(--radius);
     text-align: center;
     min-width: 150px;
+    transition: 0.3s;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .stat-value {
@@ -233,6 +246,11 @@ body {
     cursor: pointer;
     transition: 0.3s;
     border: 2px solid transparent;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .menu-card:hover {
@@ -255,6 +273,7 @@ body {
 .menu-card p {
     color: #aaa;
     font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 /* ===== شاشة اللعبة ===== */
@@ -268,6 +287,8 @@ body {
     margin-bottom: 30px;
     width: 100%;
     max-width: 1000px;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .player-info {
@@ -291,6 +312,24 @@ body {
 .game-stats {
     display: flex;
     gap: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-box {
+    text-align: center;
+    min-width: 100px;
+}
+
+.stat-box .stat-label {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.stat-box .stat-value {
+    font-size: 1.8rem;
+    color: var(--gold-primary);
+    font-weight: bold;
 }
 
 .question-box {
@@ -312,6 +351,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
 }
 
 .answers-grid {
@@ -398,6 +438,7 @@ body {
     z-index: 1000;
     animation: slideIn 0.3s;
     max-width: 400px;
+    backdrop-filter: blur(10px);
 }
 
 @keyframes slideIn {
@@ -423,6 +464,10 @@ body {
     border-right-color: var(--warning);
 }
 
+.notification.info {
+    border-right-color: var(--info);
+}
+
 /* ===== النوافذ المنبثقة ===== */
 .modal-overlay {
     position: fixed;
@@ -436,6 +481,7 @@ body {
     justify-content: center;
     z-index: 2000;
     padding: 20px;
+    backdrop-filter: blur(5px);
 }
 
 .modal {
@@ -446,6 +492,8 @@ body {
     width: 100%;
     border: 2px solid var(--gold-primary);
     box-shadow: var(--shadow);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-header {
@@ -460,6 +508,7 @@ body {
 .modal-header h3 {
     color: var(--gold-light);
     margin: 0;
+    font-size: 1.5rem;
 }
 
 .modal-close {
@@ -497,6 +546,8 @@ body {
     margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--gold-primary);
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .admin-tabs {
@@ -538,6 +589,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: 0.3s;
 }
 
 .question-item:hover {
@@ -589,6 +641,7 @@ body {
     background: rgba(255, 255, 255, 0.05);
     padding: 20px;
     border-radius: var(--radius);
+    text-align: center;
 }
 
 .stat-icon {
@@ -596,7 +649,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* ===== التأثيرات ===== */
+/* ===== تأثيرات خاصة ===== */
 .flash {
     position: fixed;
     top: 0;
@@ -620,4 +673,23 @@ body {
 
 .flash.wrong {
     background: radial-gradient(circle, rgba(231, 76, 60, 0.5) 0%, transparent 70%);
+}
+
+/* ===== تخصيص شريط التمرير ===== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gold-primary);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-secondary);
 }
