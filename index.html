@@ -19,8 +19,6 @@
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#D4AF37">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <style>
         /* تحميل أولي */
@@ -58,6 +56,7 @@
             color: #FFD700;
             margin-top: 20px;
             text-align: center;
+            font-family: 'Tajawal', sans-serif;
         }
         
         #app {
@@ -95,62 +94,84 @@
     <!-- التطبيق الرئيسي -->
     <div id="app"></div>
     
-    <!-- الملفات JavaScript -->
-    <script src="js/config.js"></script>
-    <script src="js/auth-system.js"></script>
-    <script src="js/question-manager.js"></script>
-    <script src="js/game-engine.js"></script>
-    <script src="js/ui-manager.js"></script>
-    <script src="js/admin-panel.js"></script>
-    <script src="js/app.js"></script>
-    
-    <!-- تهيئة التطبيق -->
+    <!-- الملفات JavaScript بالترتيب الصحيح -->
     <script>
-        // بعد تحميل الصفحة
-        window.addEventListener('DOMContentLoaded', function() {
+        // حل مؤقت لضمان تحميل الملفات بالترتيب
+        function loadScript(src, onLoad) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = onLoad;
+            script.onerror = function() {
+                console.error('❌ فشل تحميل الملف: ' + src);
+            };
+            document.body.appendChild(script);
+        }
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ الصفحة محملة');
             
-            // إخفاء التحميل بعد 2 ثانية أو عندما تكون الصفحة جاهزة
-            setTimeout(function() {
-                document.getElementById('loading').style.opacity = '0';
-                setTimeout(function() {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('app').style.display = 'block';
+            // تحميل الملفات بالترتيب
+            loadScript('js/config.js', function() {
+                console.log('✅ config.js محمل');
+                
+                loadScript('js/auth-system.js', function() {
+                    console.log('✅ auth-system.js محمل');
                     
-                    // بدء التطبيق
-                    try {
-                        window.gameApp = new MillionaireApp();
-                    } catch (error) {
-                        console.error('❌ خطأ في بدء التطبيق:', error);
-                        alert('حدث خطأ في بدء التطبيق. يرجى تحديث الصفحة (F5)');
-                        window.location.reload();
-                    }
-                }, 500);
-            }, 2000);
+                    loadScript('js/question-manager.js', function() {
+                        console.log('✅ question-manager.js محمل');
+                        
+                        loadScript('js/game-engine.js', function() {
+                            console.log('✅ game-engine.js محمل');
+                            
+                            loadScript('js/ui-manager.js', function() {
+                                console.log('✅ ui-manager.js محمل');
+                                
+                                loadScript('js/admin-panel.js', function() {
+                                    console.log('✅ admin-panel.js محمل');
+                                    
+                                    loadScript('js/app.js', function() {
+                                        console.log('✅ app.js محمل');
+                                        
+                                        // إخفاء شاشة التحميل
+                                        document.getElementById('loading').style.opacity = '0';
+                                        setTimeout(function() {
+                                            document.getElementById('loading').style.display = 'none';
+                                            document.getElementById('app').style.display = 'block';
+                                            
+                                            // بدء التطبيق
+                                            try {
+                                                if (typeof MillionaireApp !== 'undefined') {
+                                                    window.gameApp = new MillionaireApp();
+                                                    console.log('🎮 التطبيق بدأ بنجاح!');
+                                                } else {
+                                                    throw new Error('MillionaireApp غير معرف');
+                                                }
+                                            } catch (error) {
+                                                console.error('❌ خطأ في بدء التطبيق:', error);
+                                                document.getElementById('loading').style.display = 'flex';
+                                                document.getElementById('loading').innerHTML = `
+                                                    <div style="text-align: center;">
+                                                        <div style="color: #e74c3c; font-size: 3rem;">❌</div>
+                                                        <div class="loading-text">حدث خطأ في تحميل التطبيق</div>
+                                                        <div style="color: #aaa; margin: 20px 0;">${error.message}</div>
+                                                        <button class="skip-loading" onclick="window.location.reload()">إعادة التحميل</button>
+                                                    </div>
+                                                `;
+                                            }
+                                        }, 500);
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
             
             // زر تخطي التحميل
             document.getElementById('skip-loading').addEventListener('click', function() {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-                try {
-                    window.gameApp = new MillionaireApp();
-                } catch (error) {
-                    console.error('❌ خطأ في بدء التطبيق:', error);
-                    alert('حدث خطأ في بدء التطبيق. يرجى تحديث الصفحة (F5)');
-                    window.location.reload();
-                }
+                location.reload();
             });
-            
-            // تسجيل Service Worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(function(registration) {
-                        console.log('✅ Service Worker مسجل بنجاح:', registration.scope);
-                    })
-                    .catch(function(error) {
-                        console.log('❌ فشل تسجيل Service Worker:', error);
-                    });
-            }
         });
     </script>
 </body>
